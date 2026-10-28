@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # GitHub Actions が本物の Firebase に上げられるようにする設定（1回だけ）。
 # Google Cloud Shell（https://shell.cloud.google.com/）で動かす：
-#   bash <(curl -fsSL https://raw.githubusercontent.com/Natsucoro/handmade-pet-goods/main/scripts/setup-github-deploy.sh) プロジェクトID
+#   bash <(curl -fsSL https://raw.githubusercontent.com/Natsucoro/handmade-pet-goods/claude/shop-step0-1/scripts/setup-github-deploy.sh) プロジェクトID
 #
 # 合鍵（サービスアカウントの鍵ファイル）は作らない。
 # 代わりに「Natsucoro/handmade-pet-goods の main ブランチで動く GitHub Actions だけ」が
 # 上げ役のアカウント（github-deploy）として動けるようにする（Workload Identity 連携）。
+# あわせて、データベース（東京）・サイト・ウェブアプリの登録も用意する。
 # 何度動かしても同じ結果になる（すでにあるものはそのまま）。
 set -euo pipefail
 
@@ -28,6 +29,23 @@ echo "▶ 必要な機能をオンにします"
 gcloud services enable iam.googleapis.com iamcredentials.googleapis.com sts.googleapis.com \
   cloudresourcemanager.googleapis.com firebase.googleapis.com firebasehosting.googleapis.com \
   firebaserules.googleapis.com firestore.googleapis.com
+
+echo "▶ データベース（Firestore・東京）を用意します"
+if ! gcloud firestore databases describe --database='(default)' >/dev/null 2>&1; then
+  gcloud firestore databases create --database='(default)' --location=asia-northeast1 --type=firestore-native
+fi
+
+TOKEN="$(gcloud auth print-access-token)"
+api() { curl -sS -H "Authorization: Bearer ${TOKEN}" -H "x-goog-user-project: ${PROJECT_ID}" -H "Content-Type: application/json" "$@"; }
+
+echo "▶ サイト（Firebase Hosting）を用意します"
+api -X POST "https://firebasehosting.googleapis.com/v1beta1/projects/${PROJECT_ID}/sites?siteId=${PROJECT_ID}" -d '{}' >/dev/null || true
+
+echo "▶ ウェブアプリの登録を確かめます"
+if ! api "https://firebase.googleapis.com/v1beta1/projects/${PROJECT_ID}/webApps" | grep -q '"appId"'; then
+  api -X POST "https://firebase.googleapis.com/v1beta1/projects/${PROJECT_ID}/webApps" -d '{"displayName":"shop"}' >/dev/null
+  echo "   登録しました"
+fi
 
 echo "▶ 上げ役のアカウント（${SA_NAME}）を作ります"
 gcloud iam service-accounts describe "$SA" >/dev/null 2>&1 || \
