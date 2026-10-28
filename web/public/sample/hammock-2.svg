@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+<rect width="800" height="600" fill="#fcecf1"/>
+<path d="M150 180 Q400 470 650 180" fill="#f2a7bd" stroke="#ffffff" stroke-width="6"/>
+<line x1="150" y1="180" x2="230" y2="60" stroke="#8a6a55" stroke-width="5"/><line x1="650" y1="180" x2="570" y2="60" stroke="#8a6a55" stroke-width="5"/>
+<g transform="translate(400 250)"><ellipse rx="70" ry="50" fill="#d9d9d9"/><circle cx="-40" cy="-60" r="40" fill="#f6e27a"/><circle cx="-60" cy="-55" r="14" fill="#f08a5d"/><circle cx="-45" cy="-70" r="6" fill="#2d2522"/><path d="M-30 -100 q10 -40 30 -50 q-8 30 -16 50z" fill="#f6e27a"/></g>
+<text x="400" y="570" font-family="sans-serif" font-size="26" fill="#8a7d77" text-anchor="middle">お試しの画像（ハンモック ピンク）</text>
+</svg>

@@ -1,0 +1,42 @@
+# 本物の Firestore に、お試しの商品データを入れる／消す（手動で押したときだけ）。
+# 入れるのは ID が sample- で始まる書類だけ。お姉ちゃんが登録した本物の商品には触らない。
+name: お試しデータ
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 入れる(add) か 消す(remove)
+        type: choice
+        options: [add, remove]
+        default: add
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - id: cfg
+        run: |
+          source deploy/production.env
+          test -n "$FIREBASE_PROJECT_ID" || { echo "::error::本物の Firebase がまだ設定されていません"; exit 1; }
+          echo "project=$FIREBASE_PROJECT_ID" >> "$GITHUB_OUTPUT"
+          echo "provider=$GCP_WIF_PROVIDER" >> "$GITHUB_OUTPUT"
+          echo "sa=$GCP_DEPLOY_SA" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ steps.cfg.outputs.provider }}
+          service_account: ${{ steps.cfg.outputs.sa }}
+      - run: node scripts/seed.ts ${{ inputs.action == 'remove' && '--remove' || '' }}
+        env:
+          SEED_REAL_PROJECT: ${{ steps.cfg.outputs.project }}

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+<rect width="800" height="600" fill="#fbeef2"/>
+<circle cx="400" cy="290" r="170" fill="#d9b77e"/><path d="M240 140 q170 14 320 0" stroke="#b8925a" stroke-width="4" fill="none" opacity="0.6"/><path d="M240 162 q170 14 320 0" stroke="#b8925a" stroke-width="4" fill="none" opacity="0.6"/><path d="M240 184 q170 14 320 0" stroke="#b8925a" stroke-width="4" fill="none" opacity="0.6"/><path d="M240 206 q170 14 320 0" stroke="#b8925a" stroke-width="4" fill="none" opacity="0.6"/><path d="M240 228 q170 14 320 0" stroke="#b8925a" stroke-width="4" fill="none" opacity="0.6"/><path d="M240 250 q170 14 320 0" stroke="#b8925a" stroke-width="4" fill="none" opacity="0.6"/><path d="M240 272 q170 14 320 0" stroke="#b8925a" stroke-width="4" fill="none" opacity="0.6"/><path d="M240 294 q170 14 320 0" stroke="#b8925a" stroke-width="4" fill="none" opacity="0.6"/><path d="M240 316 q170 14 320 0" stroke="#b8925a" stroke-width="4" fill="none" opacity="0.6"/><path d="M240 338 q170 14 320 0" stroke="#b8925a" stroke-width="4" fill="none" opacity="0.6"/><path d="M240 360 q170 14 320 0" stroke="#b8925a" stroke-width="4" fill="none" opacity="0.6"/><path d="M240 382 q170 14 320 0" stroke="#b8925a" stroke-width="4" fill="none" opacity="0.6"/><path d="M240 404 q170 14 320 0" stroke="#b8925a" stroke-width="4" fill="none" opacity="0.6"/><path d="M240 426 q170 14 320 0" stroke="#b8925a" stroke-width="4" fill="none" opacity="0.6"/>
+<ellipse cx="400" cy="280" rx="71.39999999999999" ry="61.199999999999996" fill="#5c4632"/><g transform="translate(395 270) scale(0.9)">
+<ellipse cx="0" cy="0" rx="46" ry="38" fill="#ffffff" stroke="#d8cfc8" stroke-width="3"/>
+<circle cx="-30" cy="-30" r="30" fill="#ffffff" stroke="#d8cfc8" stroke-width="3"/>
+<circle cx="-38" cy="-34" r="6" fill="#2d2522"/><circle cx="-38" cy="-34" r="10" fill="none" stroke="#e8789a" stroke-width="3"/>
+<path d="M-58 -30 q-22 4 -22 12 q10 4 26 -2z" fill="#e8546f"/>
+<path d="M40 6 l40 14 -40 6z" fill="#e9e3dd"/></g>
+<text x="400" y="570" font-family="sans-serif" font-size="26" fill="#8a7d77" text-anchor="middle">お試しの画像（つぼ巣の入口）</text>
+</svg>

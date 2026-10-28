@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.log
+.firebase/
+emulator-data/
+test-results/
+playwright-report/
+# 合鍵やパスワードを入れたファイルを誤って入れないように
+.env*
+!.env.example
+*-key.json
+service-account*.json

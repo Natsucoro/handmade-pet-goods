@@ -1,0 +1,23 @@
+{
+  "name": "handmade-pet-goods",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "postinstall": "npm --prefix web ci && npm --prefix functions ci",
+    "dev": "firebase emulators:exec --project demo-handmade-pet-goods --ui \"npm run seed && npm --prefix web run dev\"",
+    "emulators": "firebase emulators:start --project demo-handmade-pet-goods --import ./emulator-data --export-on-exit",
+    "seed": "node scripts/seed.ts",
+    "typecheck": "npm --prefix web run typecheck && npm --prefix web run lint -- --deny-warnings && npm --prefix functions run build",
+    "test": "npm run typecheck && npm --prefix web test && npm --prefix functions test && npm run test:emulator",
+    "test:emulator": "npm --prefix functions run build && firebase emulators:exec --project demo-handmade-pet-goods --only firestore,storage,auth,functions \"vitest run --config tests/vitest.config.ts\"",
+    "test:e2e": "npm --prefix web run build:emulator && firebase emulators:exec --project demo-handmade-pet-goods --only firestore,auth,storage,hosting \"npm run seed && playwright test\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "@playwright/test": "1.63.0",
+    "firebase": "^12.19.0",
+    "firebase-admin": "^14.5.0",
+    "firebase-tools": "^15.34.1",
+    "vitest": "^5.0.5"
+  }
+}

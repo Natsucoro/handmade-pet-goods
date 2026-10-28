@@ -1,0 +1,21 @@
+rules_version = '2';
+
+// 写真の置き場のルール。
+// - 商品写真（products/ の下）はだれでも見られる。置けるのは管理画面に入れる人だけ。
+// - それ以外の場所はだれも読み書きできない。
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isAdmin() {
+      return request.auth != null
+        && firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid));
+    }
+
+    match /products/{productId}/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin()
+        && (request.resource == null
+            || (request.resource.contentType == 'image/webp'
+                && request.resource.size < 5 * 1024 * 1024));
+    }
+  }
+}

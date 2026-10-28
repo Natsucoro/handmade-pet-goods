@@ -1,0 +1,59 @@
+# 本物の Firebase に上げる。main に入ったとき（＝なつみに確認してもらう区切り）と、手動で押したときだけ。
+# 合鍵は使わない（GitHub と Google Cloud を「Workload Identity 連携」でつなぐ。scripts/setup-github-deploy.sh）。
+# ステップ1は無料プラン（Spark）なので、Hosting（サイト）と Firestore のルールだけを上げる。
+# 関数（functions）と写真置き場（storage）は Blaze にしてから足す。
+name: 本物に上げる
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: 本物の設定を読む
+        id: cfg
+        run: |
+          source deploy/production.env
+          echo "project=$FIREBASE_PROJECT_ID" >> "$GITHUB_OUTPUT"
+          echo "provider=$GCP_WIF_PROVIDER" >> "$GITHUB_OUTPUT"
+          echo "sa=$GCP_DEPLOY_SA" >> "$GITHUB_OUTPUT"
+          if [ -z "$FIREBASE_PROJECT_ID" ]; then echo "::notice::本物の Firebase がまだ設定されていないので、上げずに終わります"; fi
+      - uses: actions/setup-node@v7
+        if: steps.cfg.outputs.project != ''
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+            functions/package-lock.json
+      - if: steps.cfg.outputs.project != ''
+        run: npm ci
+      - uses: google-github-actions/auth@v3
+        if: steps.cfg.outputs.project != ''
+        with:
+          workload_identity_provider: ${{ steps.cfg.outputs.provider }}
+          service_account: ${{ steps.cfg.outputs.sa }}
+      - name: 画面を作る
+        if: steps.cfg.outputs.project != ''
+        run: npm --prefix web run build:hosting
+      - name: 上げる（サイトと Firestore のルール）
+        if: steps.cfg.outputs.project != ''
+        run: npx firebase deploy --only hosting,firestore --project "${{ steps.cfg.outputs.project }}" --non-interactive

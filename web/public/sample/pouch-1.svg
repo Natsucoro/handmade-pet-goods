@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+<rect width="800" height="600" fill="#eef1fb"/>
+<path d="M220 200 h360 v220 q-180 80 -360 0z" fill="#a9b8e8"/>
+<path d="M220 200 q180 -60 360 0" fill="#c4cff2"/>
+<g transform="translate(400 210)"><ellipse rx="70" ry="45" fill="#9c8f86"/><circle cx="-50" cy="-30" r="22" fill="#9c8f86"/><circle cx="50" cy="-30" r="22" fill="#9c8f86"/><circle cx="-25" cy="-5" r="12" fill="#1f1a18"/><circle cx="25" cy="-5" r="12" fill="#1f1a18"/><ellipse cy="15" rx="8" ry="5" fill="#e8789a"/></g>
+<text x="400" y="570" font-family="sans-serif" font-size="26" fill="#8a7d77" text-anchor="middle">お試しの画像（モモンガの寝袋）</text>
+</svg>
