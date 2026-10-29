@@ -1,0 +1,48 @@
+# 本物のサイトを、スマホの大きさのブラウザで開いて確かめる（読むだけ。何も書き換えない）
+name: 本物のサイトを確かめる
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - id: cfg
+        run: |
+          source deploy/production.env
+          echo "url=https://${FIREBASE_PROJECT_ID}.web.app" >> "$GITHUB_OUTPUT"
+      - name: サイトとアナリティクスの設定
+        run: |
+          curl -fsS -o /dev/null -w "トップページ: %{http_code}\n" "${{ steps.cfg.outputs.url }}/"
+          curl -fsS -o /dev/null -w "商品ページ（直接開く）: %{http_code}\n" "${{ steps.cfg.outputs.url }}/products/sample-tsubosu"
+          if curl -fsS "${{ steps.cfg.outputs.url }}/__/firebase/init.json" | grep -q '"measurementId"'; then
+            echo "アナリティクス: 計測IDあり"
+          else
+            echo "::warning::アナリティクスの計測IDがありません（アナリティクスがオフの可能性）"
+          fi
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - name: スマホの大きさで操作する
+        run: npx playwright test
+        env:
+          BASE_URL: ${{ steps.cfg.outputs.url }}
+          SCREENSHOT_DIR: screenshots
+          BLOCK_ANALYTICS: '1'
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: screenshots
+          path: |
+            screenshots
+            test-results
+          retention-days: 7

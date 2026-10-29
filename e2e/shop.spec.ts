@@ -2,6 +2,13 @@ import { expect, test } from '@playwright/test'
 
 const shots = process.env.SCREENSHOT_DIR
 
+// 本物のサイトを確かめるときは、アナリティクスに数えないように計測の通信を止める
+test.beforeEach(async ({ page }) => {
+  if (process.env.BLOCK_ANALYTICS) {
+    await page.route(/google-analytics\.com|googletagmanager\.com|firebaselogging/, (r) => r.abort())
+  }
+})
+
 test('商品一覧からつぼ巣のページを開き、送料を確かめる', async ({ page }) => {
   await page.goto('/')
   const cards = page.locator('.product-grid > li')

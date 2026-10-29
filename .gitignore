@@ -10,3 +10,4 @@ playwright-report/
 !.env.example
 *-key.json
 service-account*.json
+screenshots/
