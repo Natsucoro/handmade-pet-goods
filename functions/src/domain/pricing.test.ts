@@ -15,6 +15,8 @@ const product: Product = {
   whenSoldOut: "sold_out",
   leadDays: 3,
   createdAtMs: 0,
+  categoryIds: [],
+  sortOrder: 0,
   questions: [
     {
       id: "size",

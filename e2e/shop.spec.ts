@@ -46,3 +46,36 @@ test('URL を直接開いても商品ページが出る／ない商品は見つ�
   await page.goto('/products/sample-draft')
   await expect(page.getByText('この商品は見つかりませんでした。')).toBeVisible()
 })
+
+test('カテゴリと絞り込み → 商品ページ → 「一覧にもどる」で同じ条件・同じ位置に戻る', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: '文鳥', exact: true }).click()
+  await expect(page).toHaveURL(/\?cat=sample-cat-buncho$/)
+  const cards = page.locator('.product-grid > li')
+  await expect(cards).toHaveCount(3)
+  await page.getByRole('button', { name: '絞り込み' }).click()
+  if (shots) await page.screenshot({ path: `${shots}/5-filter-panel.png`, fullPage: true })
+  await page.getByRole('button', { name: '3件を見る' }).click()
+
+  // 下の方の商品を開く
+  const last = cards.last()
+  await last.scrollIntoViewIfNeeded()
+  const before = await page.evaluate(() => window.scrollY)
+  expect(before).toBeGreaterThan(0)
+  await last.click()
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('止まり木カバー 3本セット')
+  if (shots) await page.screenshot({ path: `${shots}/6-product-backbar.png` })
+
+  await page.getByRole('button', { name: /一覧にもどる/ }).first().click()
+  await expect(page).toHaveURL(/\?cat=sample-cat-buncho$/)
+  await expect(cards).toHaveCount(3)
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before - 5)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
+})
+
+test('キーワードで探す', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('searchbox').fill('ハンモック')
+  await expect(page.locator('.product-grid > li')).toHaveCount(1)
+  await expect(page).toHaveURL(/q=/)
+})

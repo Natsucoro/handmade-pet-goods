@@ -5,7 +5,7 @@
 //   入れるのは ID が sample- で始まるお試しの書類だけ。ほかの書類には触らない。
 import { initializeApp } from 'firebase-admin/app'
 import { getFirestore } from 'firebase-admin/firestore'
-import { sampleProducts, sampleShippingTables } from '../web/src/data/sampleData.ts'
+import { sampleCategories, sampleProducts, sampleShippingTables } from '../web/src/data/sampleData.ts'
 
 const emulator = process.env.FIRESTORE_EMULATOR_HOST
 const realProject = process.env.SEED_REAL_PROJECT
@@ -23,6 +23,10 @@ for (const { id, ...table } of sampleShippingTables) {
   const ref = db.collection('shippingTables').doc(id)
   remove ? batch.delete(ref) : batch.set(ref, table)
 }
+for (const { id, ...category } of sampleCategories) {
+  const ref = db.collection('categories').doc(id)
+  remove ? batch.delete(ref) : batch.set(ref, category)
+}
 for (const { id, ...product } of sampleProducts) {
   const ref = db.collection('products').doc(id)
   remove ? batch.delete(ref) : batch.set(ref, product)
@@ -30,5 +34,5 @@ for (const { id, ...product } of sampleProducts) {
 await batch.commit()
 console.log(
   `${emulator ? '練習用' : '本物'}（${projectId}）に、お試しデータを${remove ? '消しました' : '入れました'}：` +
-    `商品 ${sampleProducts.length} 件、送料表 ${sampleShippingTables.length} 件`,
+    `商品 ${sampleProducts.length} 件、カテゴリ ${sampleCategories.length} 件、送料表 ${sampleShippingTables.length} 件`,
 )

@@ -43,6 +43,17 @@ export interface Question {
   choices?: Choice[];
 }
 
+/** カテゴリ。お姉ちゃんが管理画面で登録する（ステップ2） */
+export interface Category {
+  id: string;
+  name: string;
+  /** まとまりの名前（例：「どの子用」「種類」）。同じまとまりを並べて表示する */
+  group: string;
+  /** 表示順（小さいほど先） */
+  sortOrder: number;
+  sample?: boolean;
+}
+
 export type StockType = "stock" | "made_to_order";
 export type WhenSoldOut = "sold_out" | "made_to_order";
 
@@ -64,6 +75,10 @@ export interface Product {
   /** お届けまでの目安（日） */
   leadDays: number;
   questions: Question[];
+  /** 入っているカテゴリ（複数可） */
+  categoryIds: string[];
+  /** お姉ちゃんが決める表示順（小さいほど先）。一覧の最初の並び */
+  sortOrder: number;
   /** 並べ替え用。新しいほど大きい（ミリ秒） */
   createdAtMs: number;
   /** お試しデータの印 */

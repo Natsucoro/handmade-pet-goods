@@ -27,6 +27,7 @@ beforeEach(async () => {
     await setDoc(doc(db, 'products/open'), { name: '公開', published: true, createdAtMs: 2 })
     await setDoc(doc(db, 'products/draft'), { name: '非公開', published: false, createdAtMs: 1 })
     await setDoc(doc(db, 'shippingTables/t1'), { name: '送料表', mode: 'flat', flatFee: 200 })
+    await setDoc(doc(db, 'categories/c1'), { name: '文鳥', group: 'どの子用', sortOrder: 1 })
     await setDoc(doc(db, 'orders/o1'), { name: 'にせ 太郎', address: 'にせの住所' })
     await setDoc(doc(db, 'customers/c1'), { name: 'にせ 花子' })
     await setDoc(doc(db, 'settings/shop'), { phone: 'optional' })
@@ -39,7 +40,8 @@ const admin = () => env.authenticatedContext('admin-uid').firestore()
 
 describe('お客さん（ログインなし・あり）', () => {
   for (const [who, db] of [['ログインなし', guest], ['ログインした他人', stranger]] as const) {
-    it(`${who}：公開中の商品と送料表は読める`, async () => {
+    it(`${who}：公開中の商品・カテゴリ・送料表は読める`, async () => {
+      await assertSucceeds(getDocs(collection(db(), 'categories')))
       await assertSucceeds(getDoc(doc(db(), 'products/open')))
       await assertSucceeds(getDocs(query(collection(db(), 'products'), where('published', '==', true))))
       await assertSucceeds(getDoc(doc(db(), 'shippingTables/t1')))
@@ -60,6 +62,7 @@ describe('お客さん（ログインなし・あり）', () => {
       await assertFails(setDoc(doc(db(), 'products/new'), { name: 'x', published: true }))
       await assertFails(deleteDoc(doc(db(), 'products/open')))
       await assertFails(setDoc(doc(db(), 'shippingTables/t1'), { flatFee: 0 }))
+      await assertFails(setDoc(doc(db(), 'categories/c1'), { name: 'x' }))
     })
   }
   it('自分を管理者にはできない', async () => {
@@ -73,6 +76,7 @@ describe('管理者（お姉ちゃん）', () => {
     await assertSucceeds(getDocs(collection(admin(), 'products')))
     await assertSucceeds(setDoc(doc(admin(), 'products/new'), { name: '新商品', published: false }))
     await assertSucceeds(setDoc(doc(admin(), 'shippingTables/t2'), { name: '送料表2' }))
+    await assertSucceeds(setDoc(doc(admin(), 'categories/c2'), { name: 'おもちゃ', group: '種類', sortOrder: 2 }))
     await assertSucceeds(setDoc(doc(admin(), 'settings/shop'), { phone: 'required' }))
   })
   it('管理者を増やすことはアプリからはできない', async () => {

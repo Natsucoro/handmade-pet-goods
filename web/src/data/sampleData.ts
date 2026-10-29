@@ -2,13 +2,22 @@
 // - 練習用 Firebase（エミュレーター）と、本物の Firebase のお試し表示に入れる（scripts/seed.ts）
 // - 自動テストと、Firebase なしのお試し表示（VITE_DATA_MODE=sample）でも使う
 // 送料や値段は説明用の数字で、本物の配送料金ではない。
-import type { Product, ShippingTable } from '@domain/types.ts'
+import type { Category, Product, ShippingTable } from '@domain/types.ts'
 
 const photo = (file: string, caption: string) => ({
   url: `sample/${file}`,
   thumbUrl: `sample/${file}`,
   caption,
 })
+
+export const sampleCategories: Category[] = [
+  { id: 'sample-cat-buncho', name: '文鳥', group: 'どの子用', sortOrder: 1, sample: true },
+  { id: 'sample-cat-okame', name: 'オカメインコ', group: 'どの子用', sortOrder: 2, sample: true },
+  { id: 'sample-cat-momonga', name: 'モモンガ', group: 'どの子用', sortOrder: 3, sample: true },
+  { id: 'sample-cat-nest', name: '巣・寝床', group: '種類', sortOrder: 11, sample: true },
+  { id: 'sample-cat-toy', name: 'おもちゃ・止まり木', group: '種類', sortOrder: 12, sample: true },
+  { id: 'sample-cat-food', name: '食器・おやつ入れ', group: '種類', sortOrder: 13, sample: true },
+]
 
 export const sampleShippingTables: ShippingTable[] = [
   {
@@ -98,6 +107,8 @@ export const sampleProducts: Product[] = [
       },
       { id: 'request', label: 'ご要望（鳥さんのお名前など）', kind: 'text', required: false },
     ],
+    categoryIds: ['sample-cat-buncho', 'sample-cat-nest'],
+    sortOrder: 1,
     createdAtMs: Date.UTC(2026, 9, 28, 6),
     sample: true,
   },
@@ -139,6 +150,8 @@ export const sampleProducts: Product[] = [
         ],
       },
     ],
+    categoryIds: ['sample-cat-okame', 'sample-cat-nest'],
+    sortOrder: 3,
     createdAtMs: Date.UTC(2026, 9, 27, 6),
     sample: true,
   },
@@ -164,6 +177,8 @@ export const sampleProducts: Product[] = [
     whenSoldOut: 'made_to_order',
     leadDays: 10,
     questions: [],
+    categoryIds: ['sample-cat-momonga', 'sample-cat-nest'],
+    sortOrder: 2,
     createdAtMs: Date.UTC(2026, 9, 26, 6),
     sample: true,
   },
@@ -180,6 +195,8 @@ export const sampleProducts: Product[] = [
     whenSoldOut: 'made_to_order',
     leadDays: 7,
     questions: [],
+    categoryIds: ['sample-cat-buncho', 'sample-cat-food'],
+    sortOrder: 4,
     createdAtMs: Date.UTC(2026, 9, 25, 6),
     sample: true,
   },
@@ -196,6 +213,8 @@ export const sampleProducts: Product[] = [
     whenSoldOut: 'sold_out',
     leadDays: 3,
     questions: [],
+    categoryIds: ['sample-cat-buncho', 'sample-cat-okame', 'sample-cat-toy'],
+    sortOrder: 5,
     createdAtMs: Date.UTC(2026, 9, 24, 6),
     sample: true,
   },
@@ -212,6 +231,8 @@ export const sampleProducts: Product[] = [
     whenSoldOut: 'made_to_order',
     leadDays: 14,
     questions: [],
+    categoryIds: ['sample-cat-buncho', 'sample-cat-toy'],
+    sortOrder: 6,
     createdAtMs: Date.UTC(2026, 9, 28, 7),
     sample: true,
   },
