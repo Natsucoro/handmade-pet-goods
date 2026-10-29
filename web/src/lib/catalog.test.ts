@@ -63,6 +63,6 @@ it('文字をそろえる', () => expect(normalizeText('ＡＢＣ　モモンガ
 
 it('カテゴリをまとまりごとに分ける', () =>
   expect(groupCategories(sampleCategories).map((g) => [g.group, g.items.length])).toEqual([
-    ['どの子用', 3],
-    ['種類', 3],
+    ['アニマル', 3],
+    ['カテゴリ', 3],
   ]))

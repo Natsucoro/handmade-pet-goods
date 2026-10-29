@@ -47,7 +47,7 @@ export interface Question {
 export interface Category {
   id: string;
   name: string;
-  /** まとまりの名前（例：「どの子用」「種類」）。同じまとまりを並べて表示する */
+  /** まとまりの名前（例：「アニマル」「カテゴリ」）。同じまとまりを並べて表示する */
   group: string;
   /** 表示順（小さいほど先） */
   sortOrder: number;

@@ -11,12 +11,12 @@ const photo = (file: string, caption: string) => ({
 })
 
 export const sampleCategories: Category[] = [
-  { id: 'sample-cat-buncho', name: '文鳥', group: 'どの子用', sortOrder: 1, sample: true },
-  { id: 'sample-cat-okame', name: 'オカメインコ', group: 'どの子用', sortOrder: 2, sample: true },
-  { id: 'sample-cat-momonga', name: 'モモンガ', group: 'どの子用', sortOrder: 3, sample: true },
-  { id: 'sample-cat-nest', name: '巣・寝床', group: '種類', sortOrder: 11, sample: true },
-  { id: 'sample-cat-toy', name: 'おもちゃ・止まり木', group: '種類', sortOrder: 12, sample: true },
-  { id: 'sample-cat-food', name: '食器・おやつ入れ', group: '種類', sortOrder: 13, sample: true },
+  { id: 'sample-cat-buncho', name: '文鳥', group: 'アニマル', sortOrder: 1, sample: true },
+  { id: 'sample-cat-okame', name: 'オカメインコ', group: 'アニマル', sortOrder: 2, sample: true },
+  { id: 'sample-cat-momonga', name: 'モモンガ', group: 'アニマル', sortOrder: 3, sample: true },
+  { id: 'sample-cat-nest', name: '巣・寝床', group: 'カテゴリ', sortOrder: 11, sample: true },
+  { id: 'sample-cat-toy', name: 'おもちゃ・止まり木', group: 'カテゴリ', sortOrder: 12, sample: true },
+  { id: 'sample-cat-food', name: '食器・おやつ入れ', group: 'カテゴリ', sortOrder: 13, sample: true },
 ]
 
 export const sampleShippingTables: ShippingTable[] = [
