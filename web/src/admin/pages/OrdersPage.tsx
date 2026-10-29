@@ -7,6 +7,7 @@ import { yen } from '../../lib/format.ts'
 import { CARRIER_LABEL, ORDER_TABS, STATUS_LABEL, formatDate, nextStatus, shipmentError, statusPatch, type OrderTabId } from '../../lib/orders.ts'
 import { useAdmin } from '../AdminContext.tsx'
 import { ConfirmButton, Field } from '../ui.tsx'
+import { FormSkeleton, ListSkeleton } from '../../components/Loading.tsx'
 
 const prefName = (code: string) => PREFECTURES.find((p) => p.code === code)?.name ?? ''
 
@@ -26,7 +27,7 @@ export function OrdersPage() {
   }, [data])
 
   if (error) return <p className="status">読み込めませんでした。開き直してください。</p>
-  if (!orders) return <p className="status">読み込み中…</p>
+  if (!orders) return <ListSkeleton />
 
   const current = ORDER_TABS.find((t) => t.id === tab)!
   const shown = orders.filter((o) => (current.statuses as readonly string[]).includes(o.status))
@@ -98,7 +99,7 @@ export function OrderDetailPage() {
     })
   }, [data, id])
 
-  if (order === undefined) return <p className="status">読み込み中…</p>
+  if (order === undefined) return <FormSkeleton />
   if (order === null) return <p className="status">この注文は見つかりませんでした。<Link to="/admin">注文一覧へ</Link></p>
 
   const update = async (patch: Partial<Order>, message: string) => {
@@ -212,7 +213,7 @@ export function OrderDetailPage() {
           {shipError && <p className="afield-error">{shipError}</p>}
           <button
             type="button"
-            className="buy-button"
+            className={busy ? 'buy-button is-busy' : 'buy-button'}
             disabled={busy}
             onClick={() => {
               const err = shipmentError(carrier, tracking)

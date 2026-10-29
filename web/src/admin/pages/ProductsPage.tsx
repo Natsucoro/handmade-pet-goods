@@ -8,6 +8,7 @@ import { yen } from '../../lib/format.ts'
 import { useAdmin } from '../AdminContext.tsx'
 import { MoveButtons } from '../ui.tsx'
 import { move } from '../util.ts'
+import { ListSkeleton } from '../../components/Loading.tsx'
 
 export function ProductsPage() {
   const { data, changed, toast } = useAdmin()
@@ -21,7 +22,7 @@ export function ProductsPage() {
   }, [data])
 
   if (error) return <p className="status">読み込めませんでした。開き直してください。</p>
-  if (!products) return <p className="status">読み込み中…</p>
+  if (!products) return <ListSkeleton />
 
   const saveOrder = async () => {
     setSaving(true)
@@ -106,7 +107,7 @@ export function ProductsPage() {
           >
             やめる
           </button>
-          <button type="button" className="buy-button" disabled={saving} onClick={saveOrder}>
+          <button type="button" className={saving ? 'buy-button is-busy' : 'buy-button'} disabled={saving} onClick={saveOrder}>
             {saving ? '保存中…' : '並び順を保存'}
           </button>
         </div>

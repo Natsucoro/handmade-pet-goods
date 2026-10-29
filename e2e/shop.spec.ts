@@ -79,3 +79,15 @@ test('キーワードで探す', async ({ page }) => {
   await expect(page.locator('.product-grid > li')).toHaveCount(1)
   await expect(page).toHaveURL(/q=/)
 })
+
+test('通信が遅いときは、読み込み中の形（スケルトン）を見せてから一覧を出す', async ({ page }) => {
+  await page.route(/:8080\//, async (route) => {
+    await new Promise((r) => setTimeout(r, 1200))
+    await route.continue()
+  })
+  await page.goto('/')
+  await expect(page.getByRole('status', { name: '読み込み中' }).first()).toBeVisible()
+  if (shots) await page.screenshot({ path: `${shots}/7-skeleton.png` })
+  await expect(page.locator('.sk-card')).toHaveCount(0, { timeout: 15_000 })
+  await expect(page.getByText('文鳥のつぼ巣（わら編み）')).toBeVisible()
+})

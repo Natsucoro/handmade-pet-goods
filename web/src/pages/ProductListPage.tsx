@@ -19,6 +19,8 @@ import {
 } from '../lib/catalog.ts'
 import { yen } from '../lib/format.ts'
 import { useLoad } from '../lib/useLoad.ts'
+import { FadeImg } from '../components/FadeImg.tsx'
+import { ProductGridSkeleton } from '../components/Loading.tsx'
 
 export function ProductListPage() {
   const data = useShopData()
@@ -31,7 +33,7 @@ export function ProductListPage() {
   // 条件を変えても「戻る」の履歴は増やさない（戻るで商品ページの前の画面に戻れるように）
   const update = (patch: Partial<Filters>) => setParams(filtersToParams({ ...filters, ...patch }), { replace: true })
 
-  if (loaded.state === 'loading') return <p className="status">読み込み中…</p>
+  if (loaded.state === 'loading') return <ProductGridSkeleton />
   if (loaded.state === 'error') return <p className="status">読み込めませんでした。時間をおいて開き直してください。</p>
   if (loaded.value.products.length === 0) return <p className="status">商品はまだありません。</p>
 
@@ -199,7 +201,7 @@ function ProductCard({ product: p, fromQuery }: { product: Product; fromQuery: s
       {/* 一覧から来たことを覚えておき、商品ページの「戻る」で同じ条件の一覧に戻す */}
       <Link to={`/products/${p.id}`} state={{ fromList: true, listQuery: fromQuery }}>
         <div className="card-photo">
-          {cover ? <img src={assetUrl(cover.thumbUrl)} alt="" loading="lazy" /> : <span>写真なし</span>}
+          {cover ? <FadeImg src={assetUrl(cover.thumbUrl)} alt="" loading="lazy" /> : <span>写真なし</span>}
         </div>
         <div className="card-body">
           <h2 className="card-name">{p.name}</h2>

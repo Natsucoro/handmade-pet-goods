@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
-import { Link, NavLink, Route, Routes, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { DATA_MODE } from '../config.ts'
 import { useShopName } from '../lib/useShopName.ts'
 import { useShopData } from '../data/ShopDataContext.tsx'
@@ -15,6 +15,7 @@ import { ProductsPage } from './pages/ProductsPage.tsx'
 import { SettingsPage } from './pages/SettingsPage.tsx'
 import { ShippingEditPage, ShippingListPage } from './pages/ShippingPages.tsx'
 import { Toast } from './ui.tsx'
+import { BirdLoader } from '../components/Loading.tsx'
 
 /** 管理画面（スマホ専用）。お姉ちゃんの Google アカウントだけが入れる */
 export default function AdminApp() {
@@ -27,7 +28,7 @@ export default function AdminApp() {
     })
   }, [])
   if (failed) return <p className="status">管理画面を開けませんでした。時間をおいて開き直してください。</p>
-  if (!admin) return <p className="status">読み込み中…</p>
+  if (!admin) return <BirdLoader />
   return <Gate data={admin.data} session={admin.session} />
 }
 
@@ -38,6 +39,7 @@ function Gate({ data, session }: { data: AdminData; session: AdminSession }) {
   const [toast, setToast] = useState<string | null>(null)
   const clearToast = useCallback(() => setToast(null), [])
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const dirty = useRef(false)
   const [pending, setPending] = useState<string | null>(null)
   const leave = useCallback(
@@ -67,7 +69,7 @@ function Gate({ data, session }: { data: AdminData; session: AdminSession }) {
     setPending(to)
   }
 
-  if (state.status === 'loading') return <p className="status">読み込み中…</p>
+  if (state.status === 'loading') return <BirdLoader />
   if (state.status === 'signedOut') return <LoginPage session={session} />
   if (state.status === 'notAdmin') {
     return (
@@ -108,6 +110,7 @@ function Gate({ data, session }: { data: AdminData; session: AdminSession }) {
           </p>
         )}
         <main className="admin-main">
+          <div key={pathname} className="page-enter">
           <Routes>
             <Route index element={<OrdersPage />} />
             <Route path="orders/:id" element={<OrderDetailPage />} />
@@ -120,6 +123,7 @@ function Gate({ data, session }: { data: AdminData; session: AdminSession }) {
             <Route path="shipping/:id" element={<ShippingEditPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Routes>
+          </div>
         </main>
         <nav className="admin-tabs" aria-label="管理画面のメニュー">
           <NavLink to="/admin" end onClick={guard('/admin')}>注文</NavLink>

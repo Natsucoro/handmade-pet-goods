@@ -8,7 +8,16 @@
     <title>手づくり小動物グッズ（仮）</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div class="boot" role="status" aria-label="読み込み中">
+      <svg viewBox="0 0 64 48" width="64" height="48" aria-hidden="true"><g class="boot-bird"><ellipse cx="34" cy="26" rx="17" ry="13" fill="#fff" stroke="#d9c4b8" stroke-width="2"/><circle cx="22" cy="17" r="10" fill="#fff" stroke="#d9c4b8" stroke-width="2"/><circle cx="19" cy="15" r="2.4" fill="#3d3330"/><path d="M12 17 q-7 1.5 -7 4 q4 1 9 -1z" fill="#e8546f"/></g></svg>
+    </div></div>
+    <style>
+      body { margin: 0; background: #f7efe9; }
+      .boot { min-height: 100dvh; display: flex; align-items: center; justify-content: center; }
+      .boot-bird { transform-origin: 32px 40px; animation: boot-hop 0.9s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+      @keyframes boot-hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-12px); } }
+      @media (prefers-reduced-motion: reduce) { .boot-bird { animation: none; } }
+    </style>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

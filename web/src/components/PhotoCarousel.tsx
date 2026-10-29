@@ -1,6 +1,7 @@
 import type { ProductPhoto } from '@domain/types.ts'
 import { useRef, useState } from 'react'
 import { assetUrl } from '../config.ts'
+import { FadeImg } from './FadeImg.tsx'
 
 /** 写真を横にスワイプして切り替える。1枚ごとにキャプションを出す */
 export function PhotoCarousel({ photos, alt }: { photos: ProductPhoto[]; alt: string }) {
@@ -24,7 +25,7 @@ export function PhotoCarousel({ photos, alt }: { photos: ProductPhoto[]; alt: st
       <div className="carousel-track" ref={track} onScroll={onScroll}>
         {photos.map((p, i) => (
           <figure className="carousel-slide" key={i}>
-            <img
+            <FadeImg
               src={assetUrl(p.url)}
               alt={p.caption || `${alt}の写真${i + 1}`}
               loading={i === 0 ? 'eager' : 'lazy'}

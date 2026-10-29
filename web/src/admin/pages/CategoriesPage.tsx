@@ -4,6 +4,7 @@ import { useAdmin } from '../AdminContext.tsx'
 import { tmpId } from '../productForm.ts'
 import { ConfirmButton, Field, MoveButtons } from '../ui.tsx'
 import { move } from '../util.ts'
+import { ListSkeleton } from '../../components/Loading.tsx'
 
 export function CategoriesPage() {
   const { data, changed, toast } = useAdmin()
@@ -17,7 +18,7 @@ export function CategoriesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data])
 
-  if (!list) return <p className="status">読み込み中…</p>
+  if (!list) return <ListSkeleton />
   const groups = Array.from(new Set(list.map((c) => c.group).filter(Boolean)))
 
   const saveOrder = async () => {

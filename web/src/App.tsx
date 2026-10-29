@@ -6,6 +6,7 @@ import { trackPageView } from './lib/analytics.ts'
 import { NotFoundPage } from './pages/NotFoundPage.tsx'
 import { ProductListPage } from './pages/ProductListPage.tsx'
 import { ProductPage } from './pages/ProductPage.tsx'
+import { BirdLoader } from './components/Loading.tsx'
 
 // 管理画面は、開いたときだけ読み込む（お客さんの画面を重くしない）
 const AdminApp = lazy(() => import('./admin/AdminApp.tsx'))
@@ -48,18 +49,24 @@ function ScrollManager() {
 
 function Shop() {
   const shopName = useShopName()
+  const { pathname } = useLocation()
   return (
     <div className="app">
       <header className="site-header">
-        <Link to="/" className="site-title">{shopName}</Link>
+        <Link to="/" className="site-title" aria-label={shopName || 'トップへ'}>
+          {shopName ? <span className="shop-name">{shopName}</span> : <span className="sk sk-title" aria-hidden="true" />}
+        </Link>
       </header>
       {DATA_MODE !== 'hosting' && <p className="dev-note">お試し表示です（にせの商品データ）。</p>}
       <main>
-        <Routes>
-          <Route path="/" element={<ProductListPage />} />
-          <Route path="/products/:id" element={<ProductPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+        {/* ページが変わるたびに、ふわっと下から出す */}
+        <div key={pathname} className="page-enter">
+          <Routes>
+            <Route path="/" element={<ProductListPage />} />
+            <Route path="/products/:id" element={<ProductPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </div>
       </main>
       <footer className="site-footer">© {shopName}</footer>
     </div>
@@ -74,7 +81,7 @@ export function App() {
         <Route
           path="/admin/*"
           element={
-            <Suspense fallback={<p className="status">読み込み中…</p>}>
+            <Suspense fallback={<BirdLoader />}>
               <AdminApp />
             </Suspense>
           }

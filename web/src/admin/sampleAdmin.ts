@@ -6,11 +6,14 @@ import { AdminError, type AdminData, type AdminSession, type SessionState } from
 let counter = 0
 const id = (prefix: string) => `${prefix}-${Date.now().toString(36)}${(counter++).toString(36)}`
 
+const wait = (ms = 400) => new Promise((r) => setTimeout(r, ms))
+
 export function createSampleAdminData(): AdminData {
   const st = getSampleState
   const set = (patch: Partial<ReturnType<typeof st>>) => setSampleState({ ...st(), ...patch })
   return {
     async listProducts() {
+      await wait()
       return [...st().products].sort((a, b) => a.sortOrder - b.sortOrder || b.createdAtMs - a.createdAtMs)
     },
     async getProduct(pid) {
@@ -18,6 +21,7 @@ export function createSampleAdminData(): AdminData {
     },
     newId: () => id('p'),
     async saveProduct(product, photos) {
+      await wait(700)
       const saved: Product = {
         ...product,
         photos: photos.map((d) =>
@@ -75,6 +79,7 @@ export function createSampleAdminData(): AdminData {
       set({ publicSettings: s })
     },
     async listOrders() {
+      await wait()
       return [...st().orders].sort((a, b) => b.createdAtMs - a.createdAtMs)
     },
     async getOrder(oid) {

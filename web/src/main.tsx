@@ -7,6 +7,7 @@ import { DATA_MODE } from './config.ts'
 import { ShopDataContext } from './data/ShopDataContext.tsx'
 import { createShopData } from './data/createShopData.ts'
 import './index.css'
+import './motion.css'
 
 const root = createRoot(document.getElementById('root')!)
 

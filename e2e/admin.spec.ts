@@ -66,6 +66,9 @@ test('管理画面：カテゴリ・送料表・写真つき商品を登録す�
   // 商品を追加
   await menu(page).getByRole('link', { name: '商品' }).click()
   await page.getByRole('link', { name: '＋ 商品を追加' }).click()
+  // 「保存する」の帯は、開いた直後から画面のいちばん下にある（動きのせいで途中に出ない）
+  const bar = await page.locator('.save-bar').boundingBox()
+  expect(bar!.y + bar!.height).toBeGreaterThan(844 - 140)
   await page.locator('input[type=file]').setInputFiles({ name: 'photo.png', mimeType: 'image/png', buffer: makePng(2000, 1500) })
   await expect(page.getByRole('img', { name: '写真1' })).toBeVisible({ timeout: 20_000 })
   await page.getByLabel('写真1の説明').fill('正面から')

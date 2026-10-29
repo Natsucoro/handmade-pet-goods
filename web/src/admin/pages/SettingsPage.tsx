@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { countPurgeable, monthsLabel } from '../../lib/orders.ts'
 import { useAdmin } from '../AdminContext.tsx'
 import { ConfirmButton, Field } from '../ui.tsx'
+import { FormSkeleton } from '../../components/Loading.tsx'
 
 export function SettingsPage() {
   const { data, changed, toast } = useAdmin()
@@ -20,7 +21,7 @@ export function SettingsPage() {
     })
   }, [data])
 
-  if (!pub || !shop) return <p className="status">読み込み中…</p>
+  if (!pub || !shop) return <FormSkeleton />
 
   const savePublic = async (next: PublicSettings, message: string) => {
     try {

@@ -9,6 +9,7 @@ import { emptyForm, formFromProduct, formToProduct, tmpId, type FormErrors, type
 import { RichTextEditor } from '../richtext/RichTextEditor.tsx'
 import { ConfirmButton, Field, MoveButtons } from '../ui.tsx'
 import { move } from '../util.ts'
+import { FormSkeleton } from '../../components/Loading.tsx'
 
 export function ProductEditPage() {
   const { id } = useParams()
@@ -37,7 +38,7 @@ export function ProductEditPage() {
   }, [data, id])
 
   if (missing) return <p className="status">この商品は見つかりませんでした。<Link to="/admin/products">商品一覧へ</Link></p>
-  if (!loaded) return <p className="status">読み込み中…</p>
+  if (!loaded) return <FormSkeleton />
   return <Editor key={loaded.form.id} initial={loaded.form} categories={loaded.categories} tables={loaded.tables} settings={loaded.settings} />
 }
 
@@ -262,7 +263,7 @@ function Editor({
 
       <div className="save-bar">
         <button type="button" className="secondary-button" onClick={() => leave('/admin/products')}>やめる</button>
-        <button type="submit" className="buy-button" disabled={saving}>
+        <button type="submit" className={saving ? 'buy-button is-busy' : 'buy-button'} disabled={saving}>
           {saving ? '保存中…' : '保存する'}
         </button>
       </div>

@@ -11,6 +11,8 @@ import { availabilityOf } from '../lib/availability.ts'
 import { extraYen, yen } from '../lib/format.ts'
 import { trackViewItem } from '../lib/analytics.ts'
 import { useLoad } from '../lib/useLoad.ts'
+import { FadeImg } from '../components/FadeImg.tsx'
+import { ProductPageSkeleton } from '../components/Loading.tsx'
 
 export function ProductPage() {
   const { id = '' } = useParams()
@@ -24,7 +26,7 @@ export function ProductPage() {
     return { product, table, categories }
   }, [data, id])
 
-  if (loaded.state === 'loading') return <p className="status">読み込み中…</p>
+  if (loaded.state === 'loading') return <ProductPageSkeleton />
   if (loaded.state === 'error') return <p className="status">読み込めませんでした。時間をおいて開き直してください。</p>
   const { product, table, categories } = loaded.value
   if (!product) {
@@ -184,7 +186,7 @@ function RelatedProducts({ product }: { product: Product }) {
         {related.map((p) => (
           <li key={p.id}>
             <Link to={`/products/${p.id}`} state={{ listQuery }}>
-              {p.photos[0] ? <img src={assetUrl(p.photos[0].thumbUrl)} alt="" loading="lazy" /> : <span className="no-photo" />}
+              {p.photos[0] ? <FadeImg src={assetUrl(p.photos[0].thumbUrl)} alt="" loading="lazy" /> : <span className="no-photo" />}
               <span className="related-name">{p.name}</span>
               <span className="related-price">{yen(p.basePrice)}</span>
             </Link>

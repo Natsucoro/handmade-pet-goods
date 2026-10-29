@@ -8,6 +8,7 @@ import { useAdmin } from '../AdminContext.tsx'
 import { tmpId } from '../productForm.ts'
 import { REGIONS, draftToTable, feeTexts, fillRegion, regionValue, type ShippingDraft } from '../shippingForm.ts'
 import { ConfirmButton, Field } from '../ui.tsx'
+import { FormSkeleton, ListSkeleton } from '../../components/Loading.tsx'
 
 function summary(t: ShippingTable): string {
   if (t.mode === 'flat') return `全国一律 ${t.flatFee !== undefined ? yen(t.flatFee) : '未設定'}`
@@ -22,7 +23,7 @@ export function ShippingListPage() {
   useEffect(() => {
     data.listShippingTables().then(setList)
   }, [data])
-  if (!list) return <p className="status">読み込み中…</p>
+  if (!list) return <ListSkeleton />
   return (
     <section>
       <div className="admin-page-head">
@@ -66,7 +67,7 @@ export function ShippingEditPage() {
     })()
   }, [data, id])
 
-  if (!draft) return <p className="status">読み込み中…</p>
+  if (!draft) return <FormSkeleton />
   const set = (patch: Partial<ShippingDraft>) => {
     setDraft({ ...draft, ...patch })
     setDirty(true)
@@ -188,7 +189,7 @@ export function ShippingEditPage() {
 
       <div className="save-bar">
         <button type="button" className="secondary-button" onClick={() => leave('/admin/shipping')}>やめる</button>
-        <button type="submit" className="buy-button" disabled={saving}>
+        <button type="submit" className={saving ? 'buy-button is-busy' : 'buy-button'} disabled={saving}>
           {saving ? '保存中…' : '保存する'}
         </button>
       </div>
