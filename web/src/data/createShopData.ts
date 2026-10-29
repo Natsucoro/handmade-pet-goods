@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app'
 import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore/lite'
 import { DATA_MODE, DEMO_PROJECT_ID } from '../config.ts'
+import { initAnalytics } from '../lib/analytics.ts'
 import type { ShopData } from './ShopData.ts'
 import { createFirestoreShopData } from './firestoreShopData.ts'
 import { createSampleShopData } from './sampleShopData.ts'
@@ -13,7 +14,9 @@ export async function createShopData(): Promise<ShopData> {
     // Firebase Hosting が用意する設定を読む（リポジトリに設定を書かなくて済む）
     const res = await fetch('/__/firebase/init.json')
     if (!res.ok) throw new Error('Firebase の設定を読めませんでした')
-    const app = initializeApp(await res.json())
+    const config = await res.json()
+    const app = initializeApp(config)
+    await initAnalytics(app, config.measurementId)
     return createFirestoreShopData(getFirestore(app))
   }
 

@@ -50,6 +50,7 @@ npm run test:e2e       # スマホの大きさで画面を確かめる（SCREENS
 - ステップ1は無料プラン（Spark）。Hosting と Firestore のルールだけを上げる。関数と写真置き場は Blaze にしてから（なつみの承認が先）
 - 関数を作り直すのはサーバー側のコードが変わったときだけ。「常に待機」設定（minInstances）は使わない
 - お試しデータは GitHub Actions の `お試しデータ` で入れる／消す（ID が `sample-` の書類だけ）
+- Google アナリティクスは本物でだけ動く（`web/src/lib/analytics.ts`）。個人情報は送らない。いま送っているのは page_view と view_item
 
 ## 進み具合
 

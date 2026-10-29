@@ -1,4 +1,5 @@
 import type { Product, ShippingTable } from '@domain/types.ts'
+import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AvailabilityBadge } from '../components/AvailabilityBadge.tsx'
 import { PhotoCarousel } from '../components/PhotoCarousel.tsx'
@@ -7,6 +8,7 @@ import { ShippingInfo } from '../components/ShippingInfo.tsx'
 import { useShopData } from '../data/ShopDataContext.tsx'
 import { availabilityOf } from '../lib/availability.ts'
 import { extraYen, yen } from '../lib/format.ts'
+import { trackViewItem } from '../lib/analytics.ts'
 import { useLoad } from '../lib/useLoad.ts'
 
 export function ProductPage() {
@@ -33,6 +35,9 @@ export function ProductPage() {
 }
 
 function ProductDetail({ product, table }: { product: Product; table: ShippingTable | null }) {
+  useEffect(() => {
+    trackViewItem(product)
+  }, [product])
   const availability = availabilityOf(product)
   const choiceQuestions = product.questions.filter((q) => q.kind === 'choice' && q.choices?.length)
 
