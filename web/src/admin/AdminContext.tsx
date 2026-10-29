@@ -7,6 +7,10 @@ export interface AdminCtx {
   /** 保存したあと、お店の画面が新しい内容を読み直すように知らせる */
   changed: () => void
   toast: (message: string) => void
+  /** 保存していない変更があるか（ほかの画面に移るときに確かめるため） */
+  setDirty: (dirty: boolean) => void
+  /** 画面を移る。保存していない変更があれば、先に確かめる */
+  leave: (to: string) => void
 }
 
 export const AdminContext = createContext<AdminCtx | null>(null)

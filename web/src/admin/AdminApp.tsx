@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, NavLink, Route, Routes } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
+import { Link, NavLink, Route, Routes, useNavigate } from 'react-router-dom'
 import { DATA_MODE, SHOP_NAME } from '../config.ts'
 import { useShopData } from '../data/ShopDataContext.tsx'
 import { resetSampleState } from '../data/sampleStore.ts'
@@ -34,7 +34,35 @@ function Gate({ data, session }: { data: AdminData; session: AdminSession }) {
   const shop = useShopData()
   const [toast, setToast] = useState<string | null>(null)
   const clearToast = useCallback(() => setToast(null), [])
-  const ctx: AdminCtx = useMemo(() => ({ data, session, changed: () => shop.refresh(), toast: setToast }), [data, session, shop])
+  const navigate = useNavigate()
+  const dirty = useRef(false)
+  const [pending, setPending] = useState<string | null>(null)
+  const leave = useCallback(
+    (to: string) => {
+      if (dirty.current) setPending(to)
+      else navigate(to)
+    },
+    [navigate],
+  )
+  const ctx: AdminCtx = useMemo(
+    () => ({
+      data,
+      session,
+      changed: () => shop.refresh(),
+      toast: setToast,
+      setDirty: (d: boolean) => {
+        dirty.current = d
+      },
+      leave,
+    }),
+    [data, session, shop, leave],
+  )
+  // リンクを押したとき、保存していない変更があれば止めて確かめる
+  const guard = (to: string) => (e: MouseEvent) => {
+    if (!dirty.current) return
+    e.preventDefault()
+    setPending(to)
+  }
 
   if (state.status === 'loading') return <p className="status">読み込み中…</p>
   if (state.status === 'signedOut') return <LoginPage session={session} />
@@ -56,7 +84,7 @@ function Gate({ data, session }: { data: AdminData; session: AdminSession }) {
       <div className="admin">
         <header className="admin-header">
           <span className="admin-title">管理画面</span>
-          <Link to="/" className="admin-header-link">お店を見る</Link>
+          <Link to="/" className="admin-header-link" onClick={guard('/')}>お店を見る</Link>
           <button type="button" className="admin-header-link" onClick={() => session.signOut()}>
             ログアウト
           </button>
@@ -88,11 +116,36 @@ function Gate({ data, session }: { data: AdminData; session: AdminSession }) {
           </Routes>
         </main>
         <nav className="admin-tabs" aria-label="管理画面のメニュー">
-          <NavLink to="/admin" end>商品</NavLink>
-          <NavLink to="/admin/categories">カテゴリ</NavLink>
-          <NavLink to="/admin/shipping">送料表</NavLink>
+          <NavLink to="/admin" end onClick={guard('/admin')}>商品</NavLink>
+          <NavLink to="/admin/categories" onClick={guard('/admin/categories')}>カテゴリ</NavLink>
+          <NavLink to="/admin/shipping" onClick={guard('/admin/shipping')}>送料表</NavLink>
         </nav>
         <Toast message={toast} onDone={clearToast} />
+        {pending && (
+          <div className="modal-back" role="presentation">
+            <div className="modal" role="alertdialog" aria-modal="true" aria-label="保存していない変更があります">
+              <p className="modal-title">保存していない変更があります</p>
+              <p>このまま移ると、変更は消えます。</p>
+              <div className="confirm-actions">
+                <button type="button" className="secondary-button" onClick={() => setPending(null)}>
+                  編集にもどる
+                </button>
+                <button
+                  type="button"
+                  className="danger-button solid"
+                  onClick={() => {
+                    const to = pending
+                    dirty.current = false
+                    setPending(null)
+                    navigate(to)
+                  }}
+                >
+                  変更を捨てて移る
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AdminContext.Provider>
   )

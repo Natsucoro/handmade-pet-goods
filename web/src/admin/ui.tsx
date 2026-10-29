@@ -7,18 +7,20 @@ export function ConfirmButton({
   message,
   onConfirm,
   className = 'danger-button',
+  ariaLabel,
 }: {
   label: string
   confirmLabel: string
   message: string
   onConfirm: () => void | Promise<void>
   className?: string
+  ariaLabel?: string
 }) {
   const [asking, setAsking] = useState(false)
   const [busy, setBusy] = useState(false)
   if (!asking) {
     return (
-      <button type="button" className={className} onClick={() => setAsking(true)}>
+      <button type="button" className={className} aria-label={ariaLabel} onClick={() => setAsking(true)}>
         {label}
       </button>
     )

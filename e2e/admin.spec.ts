@@ -124,7 +124,30 @@ test('管理画面：カテゴリ・送料表・写真つき商品を登録す�
   expect((await listFiles()).length).toBe(2) // 1600px と 600px
   await page.goto('/admin')
   await page.getByRole('link', { name: /ハリネズミの寝袋/ }).click()
-  await page.getByRole('button', { name: '外す' }).first().click()
+
+  // 保存していない変更があると、ほかの画面に移る前に確かめる
+  await page.getByLabel('商品名').fill('ハリネズミの寝袋（変更中）')
+  await page.getByRole('navigation', { name: '管理画面のメニュー' }).getByRole('link', { name: 'カテゴリ' }).click()
+  await expect(page.getByRole('alertdialog', { name: '保存していない変更があります' })).toBeVisible()
+  if (shots) await page.screenshot({ path: `${shots}/a7-leave-guard.png` })
+  await page.getByRole('button', { name: '編集にもどる' }).click()
+  await expect(page.getByLabel('商品名')).toHaveValue('ハリネズミの寝袋（変更中）')
+  await page.getByRole('button', { name: 'やめる' }).click()
+  await page.getByRole('button', { name: '変更を捨てて移る' }).click()
+  await expect(page.getByText('ハリネズミの寝袋', { exact: true })).toBeVisible()
+
+  // 質問の削除は、確かめてから消す
+  await page.getByRole('link', { name: /ハリネズミの寝袋/ }).click()
+  await page.getByRole('button', { name: '質問1を削除' }).click()
+  await expect(page.getByText('質問1「サイズ」を、選択肢ごと削除しますか？')).toBeVisible()
+  await page.getByRole('alertdialog').getByRole('button', { name: 'やめる' }).click()
+  await expect(page.getByLabel('質問の文')).toHaveValue('サイズ')
+
+  // 写真の削除も、確かめてから消す
+  await page.getByRole('button', { name: '写真1を削除' }).click()
+  if (shots) await page.screenshot({ path: `${shots}/a8-photo-delete-confirm.png` })
+  await page.getByRole('button', { name: '削除する' }).click()
+  await expect(page.getByRole('img', { name: '写真1' })).toHaveCount(0)
   await page.getByRole('button', { name: '保存する' }).click()
   await expect(page.getByRole('heading', { name: /商品（/ })).toBeVisible({ timeout: 20_000 })
   await expect.poll(async () => (await listFiles()).length).toBe(0)

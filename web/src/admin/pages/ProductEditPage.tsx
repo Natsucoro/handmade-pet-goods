@@ -52,7 +52,7 @@ function Editor({
   tables: ShippingTable[]
   settings: ShopSettings
 }) {
-  const { data, changed, toast } = useAdmin()
+  const { data, changed, toast, setDirty: tellDirty, leave } = useAdmin()
   const navigate = useNavigate()
   const [form, setForm] = useState(initial)
   const [removed, setRemoved] = useState<ProductPhoto[]>([])
@@ -64,6 +64,11 @@ function Editor({
     setForm((f) => ({ ...f, ...patch }))
     setDirty(true)
   }
+
+  useEffect(() => {
+    tellDirty(dirty)
+    return () => tellDirty(false)
+  }, [dirty, tellDirty])
 
   // 保存していない変更があるまま閉じようとしたら、ブラウザに止めてもらう
   useEffect(() => {
@@ -86,6 +91,7 @@ function Editor({
       await data.saveProduct(product, form.photos, removed)
       changed()
       setDirty(false)
+      tellDirty(false)
       toast('保存しました')
       navigate('/admin')
     } catch (e) {
@@ -107,7 +113,7 @@ function Editor({
       }}
     >
       <div className="admin-page-head">
-        <Link to="/admin" className="back-button"><span aria-hidden="true">‹</span> 商品一覧</Link>
+        <button type="button" className="back-button" onClick={() => leave('/admin')}><span aria-hidden="true">‹</span> 商品一覧</button>
         <h1>{form.isNew ? '商品を追加' : '商品を編集'}</h1>
       </div>
 
@@ -243,6 +249,7 @@ function Editor({
                 if (p) await data.deleteProduct(p)
                 changed()
                 setDirty(false)
+                tellDirty(false)
                 toast('消しました')
                 navigate('/admin')
               } catch {
@@ -254,7 +261,7 @@ function Editor({
       )}
 
       <div className="save-bar">
-        <Link to="/admin" className="secondary-button">やめる</Link>
+        <button type="button" className="secondary-button" onClick={() => leave('/admin')}>やめる</button>
         <button type="submit" className="buy-button" disabled={saving}>
           {saving ? '保存中…' : '保存する'}
         </button>
@@ -319,16 +326,17 @@ function PhotosSection({
               />
               <div className="photo-buttons">
                 <MoveButtons index={i} count={photos.length} name={`写真${i + 1}`} onMove={(a, b) => onChange(move(photos, a, b))} />
-                <button
-                  type="button"
-                  className="link-button danger"
-                  onClick={() => {
+                <ConfirmButton
+                  label="削除"
+                  ariaLabel={`写真${i + 1}を削除`}
+                  className="small-danger"
+                  confirmLabel="削除する"
+                  message={`写真${i + 1}を削除しますか？（「保存する」を押すまでは、「やめる」で元に戻せます）`}
+                  onConfirm={() => {
                     onRemove(ph)
                     onChange(photos.filter((p) => p.key !== ph.key))
                   }}
-                >
-                  外す
-                </button>
+                />
               </div>
             </div>
           </li>
@@ -358,10 +366,15 @@ function QuestionsSection({ questions, error, onChange }: { questions: QuestionD
           <div className="question-head">
             <span className="photo-no">質問{qi + 1}</span>
             <MoveButtons index={qi} count={questions.length} name={`質問${qi + 1}`} onMove={(a, b) => onChange(move(questions, a, b))} />
-            <button type="button" className="link-button danger" onClick={() => onChange(questions.filter((x) => x.id !== q.id))}>
-              外す
-            </button>
           </div>
+          <ConfirmButton
+            label="この質問を削除"
+            ariaLabel={`質問${qi + 1}を削除`}
+            className="small-danger"
+            confirmLabel="削除する"
+            message={`質問${qi + 1}${q.label ? `「${q.label}」` : ''}を、選択肢ごと削除しますか？`}
+            onConfirm={() => onChange(questions.filter((x) => x.id !== q.id))}
+          />
           <Field label="質問の文">
             <input value={q.label} onChange={(e) => update(q.id, { label: e.target.value })} placeholder="例：サイズ" />
           </Field>
@@ -396,9 +409,14 @@ function QuestionsSection({ questions, error, onChange }: { questions: QuestionD
                     onChange={(e) => update(q.id, { choices: q.choices.map((x) => (x.id === c.id ? { ...x, extra: e.target.value } : x)) })}
                   />
                   <span className="unit">円</span>
-                  <button type="button" className="icon-button" aria-label={`選択肢${ci + 1}を外す`} onClick={() => update(q.id, { choices: q.choices.filter((x) => x.id !== c.id) })}>
-                    ×
-                  </button>
+                  <ConfirmButton
+                    label="削除"
+                    ariaLabel={`選択肢${ci + 1}を削除`}
+                    className="small-danger"
+                    confirmLabel="削除する"
+                    message={`選択肢${ci + 1}${c.label ? `「${c.label}」` : ''}を削除しますか？`}
+                    onConfirm={() => update(q.id, { choices: q.choices.filter((x) => x.id !== c.id) })}
+                  />
                 </div>
               ))}
               <button type="button" className="link-button" onClick={() => update(q.id, { choices: [...q.choices, { id: tmpId('c'), label: '', extra: '' }] })}>

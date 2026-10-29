@@ -49,9 +49,10 @@ export function ShippingListPage() {
 
 export function ShippingEditPage() {
   const { id } = useParams()
-  const { data, changed, toast } = useAdmin()
+  const { data, changed, toast, setDirty, leave } = useAdmin()
   const navigate = useNavigate()
   const [draft, setDraft] = useState<ShippingDraft | null>(null)
+  useEffect(() => () => setDirty(false), [setDirty])
   const [openRegion, setOpenRegion] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -66,7 +67,10 @@ export function ShippingEditPage() {
   }, [data, id])
 
   if (!draft) return <p className="status">読み込み中…</p>
-  const set = (patch: Partial<ShippingDraft>) => setDraft({ ...draft, ...patch })
+  const set = (patch: Partial<ShippingDraft>) => {
+    setDraft({ ...draft, ...patch })
+    setDirty(true)
+  }
 
   const save = async () => {
     const { table, error } = draftToTable(draft)
@@ -75,6 +79,7 @@ export function ShippingEditPage() {
     setSaving(true)
     try {
       await data.saveShippingTable(table)
+      setDirty(false)
       changed()
       toast('保存しました')
       navigate('/admin/shipping')
@@ -94,7 +99,7 @@ export function ShippingEditPage() {
       }}
     >
       <div className="admin-page-head">
-        <Link to="/admin/shipping" className="back-button"><span aria-hidden="true">‹</span> 送料表</Link>
+        <button type="button" className="back-button" onClick={() => leave('/admin/shipping')}><span aria-hidden="true">‹</span> 送料表</button>
         <h1>{id ? '送料表を編集' : '送料表を追加'}</h1>
       </div>
       <section className="aform-section">
@@ -169,6 +174,7 @@ export function ShippingEditPage() {
             onConfirm={async () => {
               try {
                 await data.deleteShippingTable(id)
+                setDirty(false)
                 changed()
                 toast('消しました')
                 navigate('/admin/shipping')
@@ -181,7 +187,7 @@ export function ShippingEditPage() {
       )}
 
       <div className="save-bar">
-        <Link to="/admin/shipping" className="secondary-button">やめる</Link>
+        <button type="button" className="secondary-button" onClick={() => leave('/admin/shipping')}>やめる</button>
         <button type="submit" className="buy-button" disabled={saving}>
           {saving ? '保存中…' : '保存する'}
         </button>
