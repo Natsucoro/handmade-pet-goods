@@ -6,6 +6,7 @@
 import { initializeApp } from 'firebase-admin/app'
 import { getFirestore } from 'firebase-admin/firestore'
 import { sampleCategories, sampleProducts, sampleShippingTables } from '../web/src/data/sampleData.ts'
+import { sampleOrders } from '../web/src/data/sampleOrders.ts'
 
 const emulator = process.env.FIRESTORE_EMULATOR_HOST
 const realProject = process.env.SEED_REAL_PROJECT
@@ -30,6 +31,13 @@ for (const { id, ...category } of sampleCategories) {
 for (const { id, ...product } of sampleProducts) {
   const ref = db.collection('products').doc(id)
   remove ? batch.delete(ref) : batch.set(ref, product)
+}
+// にせの注文は練習用にだけ入れる（本物の注文一覧に混ぜない）
+if (emulator) {
+  for (const { id, ...order } of sampleOrders) {
+    const ref = db.collection('orders').doc(id)
+    remove ? batch.delete(ref) : batch.set(ref, order)
+  }
 }
 await batch.commit()
 console.log(

@@ -1,10 +1,12 @@
 /* ステップ1はシンプルに。可愛い仕上げはステップ7で行う。スマホ優先。 */
 :root {
-  --bg: #fffaf6;
+  --bg: #f7efe9;
   --surface: #ffffff;
   --text: #3d3330;
   --muted: #8a7d77;
-  --line: #f0e4dc;
+  --line: #dcc6b8;
+  --line-strong: #c4a796;
+  --band: #fbe3ea;
   --accent: #d9708f;
   --accent-soft: #fde8ee;
   --ok: #2f8f6f;
@@ -13,7 +15,7 @@
   --warn-soft: #fbf0dc;
   --info: #3a7fb5;
   --info-soft: #e4f0f9;
-  --gray-soft: #eeeae7;
+  --gray-soft: #ebe4df;
   --radius: 14px;
   color-scheme: light;
   font-family: system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
@@ -238,3 +240,17 @@ main { flex: 1; padding: 12px 16px 24px; }
   min-height: 36px; padding: 4px 12px; border-radius: 999px; border: 0; background: #3d3330; color: #fff;
   font-size: 0.8rem; font-weight: 700; opacity: 0.9;
 }
+
+/* ===== 区切りをはっきりさせる（線を濃く・太く、見出しに帯） ===== */
+.site-header { border-bottom: 2px solid var(--line); background: rgba(255, 255, 255, 0.97); }
+.card { border: 1.5px solid var(--line); box-shadow: 0 1px 2px rgba(61, 51, 48, 0.06); }
+.card-body { border-top: 1.5px solid var(--line); }
+.panel { border: 1.5px solid var(--line); padding: 0 16px 14px; overflow: hidden; }
+.panel h2 {
+  margin: 0 -16px 10px; padding: 8px 16px; background: var(--band); border-bottom: 1.5px solid var(--line);
+  font-size: 0.95rem;
+}
+.choices > div + div { border-top: 1px dashed var(--line); padding-top: 8px; }
+.chip, .tool-button, .sort-select select, .search input, .back-button, .secondary-button, .field select { border-width: 1.5px; border-color: var(--line-strong); }
+.filter-panel { border: 1.5px solid var(--line-strong); }
+.buy-bar { border-top: 2px solid var(--line); background: rgba(255, 255, 255, 0.97); }

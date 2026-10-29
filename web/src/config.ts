@@ -10,9 +10,6 @@ export const DATA_MODE: DataMode = raw === 'hosting' || raw === 'sample' ? raw :
 /** 練習用 Firebase のプロジェクトID。demo- で始まるので本物にはつながらない */
 export const DEMO_PROJECT_ID = 'demo-handmade-pet-goods'
 
-/** ショップ名（仮）。ステップ2でショップ設定から読むようにする */
-export const SHOP_NAME = '手づくり小動物グッズ（仮）'
-
 /** 在庫がこの数以下なら「残り◯個」と出す */
 export const LOW_STOCK = 3
 

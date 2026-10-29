@@ -1,4 +1,4 @@
-import type { Category, Product, ShippingTable } from '@domain/types.ts'
+import { DEFAULT_PUBLIC_SETTINGS, type Category, type Product, type PublicSettings, type ShippingTable } from '@domain/types.ts'
 import type { Firestore } from 'firebase/firestore/lite'
 import { collection, doc, getDoc, getDocs, limit, orderBy, query, where } from 'firebase/firestore/lite'
 import type { ShopData } from './ShopData.ts'
@@ -8,6 +8,7 @@ import type { ShopData } from './ShopData.ts'
 export function createFirestoreShopData(db: Firestore): ShopData {
   let products: Promise<Product[]> | null = null
   let categories: Promise<Category[]> | null = null
+  let publicSettings: Promise<PublicSettings> | null = null
   const tables = new Map<string, Promise<ShippingTable | null>>()
 
   const listProducts = () => {
@@ -59,7 +60,15 @@ export function createFirestoreShopData(db: Firestore): ShopData {
       categories.catch(() => (categories = null))
       return categories
     },
+    getPublicSettings() {
+      publicSettings ??= getDoc(doc(db, 'settings', 'public')).then(
+        (snap) => ({ ...DEFAULT_PUBLIC_SETTINGS, ...(snap.data() as Partial<PublicSettings> | undefined) }),
+        () => DEFAULT_PUBLIC_SETTINGS,
+      )
+      return publicSettings
+    },
     refresh() {
+      publicSettings = null
       products = null
       categories = null
       tables.clear()

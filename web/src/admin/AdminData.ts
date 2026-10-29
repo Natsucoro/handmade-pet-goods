@@ -1,4 +1,4 @@
-import type { Category, Product, ProductPhoto, ShippingTable, ShopSettings } from '@domain/types.ts'
+import type { Category, Order, Product, ProductPhoto, PublicSettings, ShippingTable, ShopSettings } from '@domain/types.ts'
 import type { PreparedImage } from './images.ts'
 
 /** 編集中の写真。もう保存してあるもの（existing）か、これから上げるもの（pending） */
@@ -32,6 +32,14 @@ export interface AdminData {
 
   getSettings(): Promise<ShopSettings>
   saveSettings(s: ShopSettings): Promise<void>
+  getPublicSettings(): Promise<PublicSettings>
+  savePublicSettings(s: PublicSettings): Promise<void>
+
+  /** 注文（新しい順） */
+  listOrders(): Promise<Order[]>
+  getOrder(id: string): Promise<Order | null>
+  /** 状態・配送会社・追跡番号などを書き換える */
+  updateOrder(id: string, patch: Partial<Order>): Promise<void>
 }
 
 export type SessionState =

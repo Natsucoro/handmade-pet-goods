@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useRef } from 'react'
 import { Link, Route, Routes, useLocation, useNavigationType } from 'react-router-dom'
-import { DATA_MODE, SHOP_NAME } from './config.ts'
+import { DATA_MODE } from './config.ts'
+import { useShopName } from './lib/useShopName.ts'
 import { trackPageView } from './lib/analytics.ts'
 import { NotFoundPage } from './pages/NotFoundPage.tsx'
 import { ProductListPage } from './pages/ProductListPage.tsx'
@@ -46,10 +47,11 @@ function ScrollManager() {
 }
 
 function Shop() {
+  const shopName = useShopName()
   return (
     <div className="app">
       <header className="site-header">
-        <Link to="/" className="site-title">{SHOP_NAME}</Link>
+        <Link to="/" className="site-title">{shopName}</Link>
       </header>
       {DATA_MODE !== 'hosting' && <p className="dev-note">お試し表示です（にせの商品データ）。</p>}
       <main>
@@ -59,7 +61,7 @@ function Shop() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
-      <footer className="site-footer">© {SHOP_NAME}</footer>
+      <footer className="site-footer">© {shopName}</footer>
     </div>
   )
 }

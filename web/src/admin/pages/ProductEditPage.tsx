@@ -36,7 +36,7 @@ export function ProductEditPage() {
     })().catch(() => setMissing(true))
   }, [data, id])
 
-  if (missing) return <p className="status">この商品は見つかりませんでした。<Link to="/admin">商品一覧へ</Link></p>
+  if (missing) return <p className="status">この商品は見つかりませんでした。<Link to="/admin/products">商品一覧へ</Link></p>
   if (!loaded) return <p className="status">読み込み中…</p>
   return <Editor key={loaded.form.id} initial={loaded.form} categories={loaded.categories} tables={loaded.tables} settings={loaded.settings} />
 }
@@ -93,7 +93,7 @@ function Editor({
       setDirty(false)
       tellDirty(false)
       toast('保存しました')
-      navigate('/admin')
+      navigate('/admin/products')
     } catch (e) {
       console.error(e)
       toast('保存できませんでした。通信を確かめて、もう一度お試しください')
@@ -113,7 +113,7 @@ function Editor({
       }}
     >
       <div className="admin-page-head">
-        <button type="button" className="back-button" onClick={() => leave('/admin')}><span aria-hidden="true">‹</span> 商品一覧</button>
+        <button type="button" className="back-button" onClick={() => leave('/admin/products')}><span aria-hidden="true">‹</span> 商品一覧</button>
         <h1>{form.isNew ? '商品を追加' : '商品を編集'}</h1>
       </div>
 
@@ -251,7 +251,7 @@ function Editor({
                 setDirty(false)
                 tellDirty(false)
                 toast('消しました')
-                navigate('/admin')
+                navigate('/admin/products')
               } catch {
                 toast('消せませんでした。もう一度お試しください')
               }
@@ -261,7 +261,7 @@ function Editor({
       )}
 
       <div className="save-bar">
-        <button type="button" className="secondary-button" onClick={() => leave('/admin')}>やめる</button>
+        <button type="button" className="secondary-button" onClick={() => leave('/admin/products')}>やめる</button>
         <button type="submit" className="buy-button" disabled={saving}>
           {saving ? '保存中…' : '保存する'}
         </button>

@@ -4,7 +4,7 @@ rules_version = '2';
 // - 管理画面に入れる人（お姉ちゃん、開発中はなつみ）＝ admins/{uid} の書類がある人。
 //   admins はこのルールでは誰も書けない（Firebase の画面からだけ追加する）。
 // - それ以外の人は、公開中の商品・カテゴリ・送料表を読めるだけ。
-// - 注文・お客さんの情報は、ルールに書いていないので誰も読めない（ステップ3で本人用を足す）。
+// - 注文は管理者だけが読める。お客さんの情報はルールに書いていないので誰も読めない（ステップ3で本人用を足す）。
 service cloud.firestore {
   match /databases/{database}/documents {
     function isAdmin() {
@@ -32,9 +32,21 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    match /settings/{docId} {
-      allow read: if isAdmin();
+    // ショップ名・電話番号を必須にするか：お客さんの画面でも使う
+    match /settings/public {
+      allow read: if true;
       allow write: if isAdmin();
+    }
+
+    // それ以外の設定（登録した色・個人情報を消すまでの期間など）
+    match /settings/{docId} {
+      allow read, write: if isAdmin() && docId != 'public';
+    }
+
+    // 注文：管理者が見て、状態や追跡番号を変える。作るのはサーバー（ステップ3）だけ
+    match /orders/{orderId} {
+      allow read, update: if isAdmin();
+      allow create, delete: if false;
     }
   }
 }

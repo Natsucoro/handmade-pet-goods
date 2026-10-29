@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { Link, NavLink, Route, Routes, useNavigate } from 'react-router-dom'
-import { DATA_MODE, SHOP_NAME } from '../config.ts'
+import { DATA_MODE } from '../config.ts'
+import { useShopName } from '../lib/useShopName.ts'
 import { useShopData } from '../data/ShopDataContext.tsx'
 import { resetSampleState } from '../data/sampleStore.ts'
 import type { AdminData, AdminSession, SessionState } from './AdminData.ts'
@@ -9,7 +10,9 @@ import './admin.css'
 import { createAdmin } from './createAdmin.ts'
 import { CategoriesPage } from './pages/CategoriesPage.tsx'
 import { ProductEditPage } from './pages/ProductEditPage.tsx'
+import { OrderDetailPage, OrdersPage } from './pages/OrdersPage.tsx'
 import { ProductsPage } from './pages/ProductsPage.tsx'
+import { SettingsPage } from './pages/SettingsPage.tsx'
 import { ShippingEditPage, ShippingListPage } from './pages/ShippingPages.tsx'
 import { Toast } from './ui.tsx'
 
@@ -106,19 +109,24 @@ function Gate({ data, session }: { data: AdminData; session: AdminSession }) {
         )}
         <main className="admin-main">
           <Routes>
-            <Route index element={<ProductsPage />} />
+            <Route index element={<OrdersPage />} />
+            <Route path="orders/:id" element={<OrderDetailPage />} />
+            <Route path="products" element={<ProductsPage />} />
             <Route path="products/new" element={<ProductEditPage />} />
             <Route path="products/:id" element={<ProductEditPage />} />
             <Route path="categories" element={<CategoriesPage />} />
             <Route path="shipping" element={<ShippingListPage />} />
             <Route path="shipping/new" element={<ShippingEditPage />} />
             <Route path="shipping/:id" element={<ShippingEditPage />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Routes>
         </main>
         <nav className="admin-tabs" aria-label="管理画面のメニュー">
-          <NavLink to="/admin" end onClick={guard('/admin')}>商品</NavLink>
+          <NavLink to="/admin" end onClick={guard('/admin')}>注文</NavLink>
+          <NavLink to="/admin/products" onClick={guard('/admin/products')}>商品</NavLink>
           <NavLink to="/admin/categories" onClick={guard('/admin/categories')}>カテゴリ</NavLink>
           <NavLink to="/admin/shipping" onClick={guard('/admin/shipping')}>送料表</NavLink>
+          <NavLink to="/admin/settings" onClick={guard('/admin/settings')}>設定</NavLink>
         </nav>
         <Toast message={toast} onDone={clearToast} />
         {pending && (
@@ -153,9 +161,10 @@ function Gate({ data, session }: { data: AdminData; session: AdminSession }) {
 
 function LoginPage({ session }: { session: AdminSession }) {
   const [error, setError] = useState('')
+  const shopName = useShopName()
   return (
     <div className="admin-login">
-      <h1>{SHOP_NAME}<br />管理画面</h1>
+      <h1>{shopName}<br />管理画面</h1>
       <button
         type="button"
         className="buy-button"

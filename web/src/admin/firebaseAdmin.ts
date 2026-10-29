@@ -1,5 +1,5 @@
 // 本物・練習用の Firebase を使う管理画面のデータとログイン。
-import type { Category, Product, ShippingTable, ShopSettings } from '@domain/types.ts'
+import { DEFAULT_PUBLIC_SETTINGS, DEFAULT_SHOP_SETTINGS, type Category, type Order, type Product, type PublicSettings, type ShippingTable, type ShopSettings } from '@domain/types.ts'
 import type { FirebaseApp } from 'firebase/app'
 import {
   GoogleAuthProvider,
@@ -20,7 +20,9 @@ import {
   getDocs,
   getFirestore,
   query,
+  orderBy,
   setDoc,
+  updateDoc,
   where,
   writeBatch,
 } from 'firebase/firestore/lite'
@@ -152,10 +154,30 @@ export function createFirebaseAdmin(app: FirebaseApp): { data: AdminData; sessio
     },
     async getSettings() {
       const snap = await getDoc(doc(db, 'settings', 'shop'))
-      return { customColors: [], ...(snap.data() as Partial<ShopSettings> | undefined) }
+      return { ...DEFAULT_SHOP_SETTINGS, ...(snap.data() as Partial<ShopSettings> | undefined) }
     },
     async saveSettings(s) {
       await setDoc(doc(db, 'settings', 'shop'), s, { merge: true })
+    },
+    async getPublicSettings() {
+      const snap = await getDoc(doc(db, 'settings', 'public'))
+      return { ...DEFAULT_PUBLIC_SETTINGS, ...(snap.data() as Partial<PublicSettings> | undefined) }
+    },
+    async savePublicSettings(s) {
+      await setDoc(doc(db, 'settings', 'public'), s, { merge: true })
+    },
+    async listOrders() {
+      const snap = await getDocs(query(collection(db, 'orders'), orderBy('createdAtMs', 'desc')))
+      return snap.docs.map((d) => ({ ...(d.data() as Omit<Order, 'id'>), id: d.id }))
+    },
+    async getOrder(id) {
+      const snap = await getDoc(doc(db, 'orders', id))
+      return snap.exists() ? { ...(snap.data() as Omit<Order, 'id'>), id: snap.id } : null
+    },
+    async updateOrder(id, patch) {
+      const { id: _drop, ...rest } = patch
+      void _drop
+      await updateDoc(doc(db, 'orders', id), JSON.parse(JSON.stringify(rest)))
     },
   }
 

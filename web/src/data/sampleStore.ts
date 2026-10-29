@@ -1,24 +1,29 @@
 // お試し表示（Firebase なし）用の、ページの中だけのデータ置き場。
 // 管理画面で変えた内容が、そのままお店の画面にも出る。
 // この端末のブラウザにだけ保存する（写真は保存しないので、開き直すと消える）。
-import type { Category, Product, ShippingTable, ShopSettings } from '@domain/types.ts'
+import { DEFAULT_PUBLIC_SETTINGS, DEFAULT_SHOP_SETTINGS, type Category, type Order, type Product, type PublicSettings, type ShippingTable, type ShopSettings } from '@domain/types.ts'
 import { sampleCategories, sampleProducts, sampleShippingTables } from './sampleData.ts'
+import { sampleOrders } from './sampleOrders.ts'
 
 export interface SampleState {
   products: Product[]
   categories: Category[]
   shippingTables: ShippingTable[]
   settings: ShopSettings
+  publicSettings: PublicSettings
+  orders: Order[]
 }
 
-const KEY = 'handmade-pet-goods:sample-v1'
+const KEY = 'handmade-pet-goods:sample-v2'
 
 function initial(): SampleState {
   return structuredClone({
     products: sampleProducts,
     categories: sampleCategories,
     shippingTables: sampleShippingTables,
-    settings: { customColors: [] },
+    settings: DEFAULT_SHOP_SETTINGS,
+    publicSettings: DEFAULT_PUBLIC_SETTINGS,
+    orders: sampleOrders,
   })
 }
 

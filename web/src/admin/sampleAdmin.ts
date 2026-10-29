@@ -68,6 +68,21 @@ export function createSampleAdminData(): AdminData {
     async saveSettings(s) {
       set({ settings: s })
     },
+    async getPublicSettings() {
+      return st().publicSettings
+    },
+    async savePublicSettings(s) {
+      set({ publicSettings: s })
+    },
+    async listOrders() {
+      return [...st().orders].sort((a, b) => b.createdAtMs - a.createdAtMs)
+    },
+    async getOrder(oid) {
+      return st().orders.find((o) => o.id === oid) ?? null
+    },
+    async updateOrder(oid, patch) {
+      set({ orders: st().orders.map((o) => (o.id === oid ? { ...o, ...patch } : o)) })
+    },
   }
 }
 

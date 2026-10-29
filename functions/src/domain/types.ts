@@ -100,8 +100,76 @@ export interface ShippingTable {
   sample?: boolean;
 }
 
-/** ショップの設定（管理画面だけが読み書きする） */
+/** お客さんにも見えるショップの設定（settings/public） */
+export interface PublicSettings {
+  shopName: string;
+  /** 注文のときの電話番号を必須にするか */
+  phoneRequired: boolean;
+}
+
+/** 管理画面だけが読み書きするショップの設定（settings/shop） */
 export interface ShopSettings {
   /** 説明文の飾りに使う、自分で登録した色（#rrggbb） */
   customColors: string[];
+  /** 取引が終わってから、お客さんの住所・電話・メッセージを消すまでの月数 */
+  retentionMonths: number;
+}
+
+export const DEFAULT_PUBLIC_SETTINGS: PublicSettings = { shopName: "手づくり小動物グッズ（仮）", phoneRequired: false };
+export const DEFAULT_SHOP_SETTINGS: ShopSettings = { customColors: [], retentionMonths: 24 };
+/** 個人情報を消すまでの期間として選べる月数（3か月〜5年） */
+export const RETENTION_CHOICES = [3, 6, 12, 24, 36, 60] as const;
+
+/** 注文の状態（計画書「注文の状態」） */
+export type OrderStatus = "pending_payment" | "paid" | "in_production" | "shipped" | "completed" | "cancelled";
+export type Carrier = "yamato" | "sagawa" | "japanpost" | "other";
+
+export interface OrderAnswer {
+  questionId: string;
+  label: string;
+  /** 選んだ選択肢の名前、または自由入力の答え */
+  answer: string;
+  /** そのときの追加料金（円） */
+  extraPrice: number;
+}
+
+export interface OrderItem {
+  productId: string;
+  /** 注文したときの商品名（あとで商品名を変えても変わらない） */
+  name: string;
+  /** 注文したときの1個の値段（基本＋追加料金） */
+  unitPrice: number;
+  quantity: number;
+  answers: OrderAnswer[];
+}
+
+export interface ShippingAddress {
+  name: string;
+  postalCode: string;
+  prefecture: PrefectureCode;
+  address1: string;
+  address2?: string;
+  phone?: string;
+}
+
+export interface Order {
+  id: string;
+  /** お客さんに見せる注文番号 */
+  number: string;
+  createdAtMs: number;
+  status: OrderStatus;
+  items: OrderItem[];
+  subtotal: number;
+  shipping: number;
+  total: number;
+  address: ShippingAddress;
+  email: string;
+  /** お客さんからの連絡事項 */
+  note?: string;
+  carrier?: Carrier;
+  trackingNumber?: string;
+  shippedAtMs?: number;
+  completedAtMs?: number;
+  cancelledAtMs?: number;
+  sample?: boolean;
 }

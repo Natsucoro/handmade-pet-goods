@@ -17,6 +17,9 @@ export function createSampleShopData(): ShopData {
     async listCategories() {
       return [...getSampleState().categories].sort((a, b) => a.sortOrder - b.sortOrder)
     },
+    async getPublicSettings() {
+      return getSampleState().publicSettings
+    },
     refresh() {},
   }
 }

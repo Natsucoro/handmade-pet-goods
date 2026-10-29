@@ -1,0 +1,87 @@
+// お試しの注文（にせのデータ）。名前・住所・メールはすべて架空。
+import type { Order } from '@domain/types.ts'
+
+const day = (d: number, h = 10) => Date.UTC(2026, 9, d, h - 9)
+
+export const sampleOrders: Order[] = [
+  {
+    id: 'sample-order-1',
+    number: '20261029-003',
+    createdAtMs: day(29, 21),
+    status: 'paid',
+    items: [
+      {
+        productId: 'sample-tsubosu',
+        name: '文鳥のつぼ巣（わら編み）',
+        unitPrice: 3800,
+        quantity: 1,
+        answers: [
+          { questionId: 'size', label: 'サイズ', answer: 'L', extraPrice: 500 },
+          { questionId: 'nameplate', label: '名入れ札', answer: 'あり', extraPrice: 300 },
+          { questionId: 'request', label: 'ご要望（鳥さんのお名前など）', answer: 'ぴーちゃん', extraPrice: 0 },
+        ],
+      },
+    ],
+    subtotal: 3800,
+    shipping: 870,
+    total: 4670,
+    address: { name: 'にせ 花子', postalCode: '000-0000', prefecture: '13', address1: 'にせ区にせ町1-2-3', phone: '000-0000-0000' },
+    email: 'hanako@example.com',
+    note: '誕生日プレゼントなので、できれば11月10日までに届くとうれしいです。',
+    sample: true,
+  },
+  {
+    id: 'sample-order-2',
+    number: '20261028-002',
+    createdAtMs: day(28, 13),
+    status: 'in_production',
+    items: [
+      {
+        productId: 'sample-hammock',
+        name: 'オカメインコの布ハンモック',
+        unitPrice: 2400,
+        quantity: 2,
+        answers: [{ questionId: 'color', label: '生地の色', answer: 'ミント', extraPrice: 0 }],
+      },
+    ],
+    subtotal: 4800,
+    shipping: 200,
+    total: 5000,
+    address: { name: 'にせ 次郎', postalCode: '000-0000', prefecture: '27', address1: 'にせ市にせ通り4-5', address2: 'にせマンション101' },
+    email: 'jiro@example.com',
+    sample: true,
+  },
+  {
+    id: 'sample-order-3',
+    number: '20261025-001',
+    createdAtMs: day(25, 9),
+    status: 'shipped',
+    items: [{ productId: 'sample-pouch', name: 'モモンガの寝袋ポーチ', unitPrice: 2800, quantity: 1, answers: [] }],
+    subtotal: 2800,
+    shipping: 200,
+    total: 3000,
+    address: { name: 'にせ 三郎', postalCode: '000-0000', prefecture: '01', address1: 'にせ市にせ1条2丁目' },
+    email: 'saburo@example.com',
+    carrier: 'japanpost',
+    trackingNumber: '0000-0000-0000',
+    shippedAtMs: day(27, 15),
+    sample: true,
+  },
+  {
+    id: 'sample-order-4',
+    number: '20261020-001',
+    createdAtMs: day(20, 18),
+    status: 'completed',
+    items: [{ productId: 'sample-perch', name: '止まり木カバー 3本セット', unitPrice: 1200, quantity: 1, answers: [] }],
+    subtotal: 1200,
+    shipping: 200,
+    total: 1400,
+    address: { name: 'にせ 四子', postalCode: '000-0000', prefecture: '40', address1: 'にせ市にせ町9-9' },
+    email: 'yoko@example.com',
+    carrier: 'yamato',
+    trackingNumber: '0000-0000-0001',
+    shippedAtMs: day(21, 11),
+    completedAtMs: day(23, 20),
+    sample: true,
+  },
+]
