@@ -21,6 +21,7 @@
 | 場所 | 中身 |
 | --- | --- |
 | `web/` | お客さん側の画面（React + Vite + TypeScript）。スマホ優先 |
+| `web/src/admin/` | 管理画面（`/admin`、スマホ専用、開いたときだけ読み込む）。説明文の編集は `richtext/`、写真の変換は `images.ts`（jSquash で WebP） |
 | `functions/` | サーバー側（Cloud Functions）。`functions/src/domain/` は画面とサーバーで共通の型と金額計算（外部ライブラリを import しない） |
 | `firestore.rules` / `storage.rules` | 読み書きできる人のルール。管理者は `admins/{uid}` の書類がある人 |
 | `tests/` | 練習用 Firebase の上で動かすテスト（ルール・サーバー） |
@@ -54,5 +55,8 @@ npm run test:e2e       # スマホの大きさで画面を確かめる（SCREENS
 
 ## 進み具合
 
-- ステップ0（準備）・ステップ1（見るだけのショップ）: 作成済み。なつみの OK 待ち
-- ステップ2以降は、ステップ1をなつみがスマホで見て OK を出してから
+- ステップ0・1：完了（なつみ OK 済み。カテゴリ・絞り込み・戻る導線も追加済み）
+- ステップ2（管理画面）：お試し版を作成。なつみの確認待ち。本物にはまだ上げていない
+  - 本物で写真を上げるには Blaze が必要（承認前に公式料金ページの数字で相談する）
+  - 本物で使う前に、Firebase で Google ログインを有効にし、お姉ちゃんの uid で admins の書類を作る
+- お試し表示（Firebase なし）：`npm --prefix web run build:sample`。末尾 `#admin` で管理画面から開く

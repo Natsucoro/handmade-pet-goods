@@ -9,4 +9,6 @@ export interface ShopData {
   getShippingTable(id: string): Promise<ShippingTable | null>
   /** カテゴリを表示順に */
   listCategories(): Promise<Category[]>
+  /** 覚えておいた一覧などを捨てて、次に読むときに読み直す（管理画面で変えたあと） */
+  refresh(): void
 }

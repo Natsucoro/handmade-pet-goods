@@ -1,10 +1,13 @@
-import { useEffect, useRef } from 'react'
+import { lazy, Suspense, useEffect, useRef } from 'react'
 import { Link, Route, Routes, useLocation, useNavigationType } from 'react-router-dom'
 import { DATA_MODE, SHOP_NAME } from './config.ts'
 import { trackPageView } from './lib/analytics.ts'
 import { NotFoundPage } from './pages/NotFoundPage.tsx'
 import { ProductListPage } from './pages/ProductListPage.tsx'
 import { ProductPage } from './pages/ProductPage.tsx'
+
+// 管理画面は、開いたときだけ読み込む（お客さんの画面を重くしない）
+const AdminApp = lazy(() => import('./admin/AdminApp.tsx'))
 
 // ページごとのスクロール位置。「戻る」で一覧に戻ったとき、見ていた位置に戻すため
 const scrollPositions = new Map<string, number>()
@@ -24,7 +27,8 @@ function ScrollManager() {
   useEffect(() => {
     const pathChanged = lastPath.current !== location.pathname
     lastPath.current = location.pathname
-    if (pathChanged) trackPageView(location.pathname)
+    // 管理画面はアクセス解析に数えない
+    if (pathChanged && !location.pathname.startsWith('/admin')) trackPageView(location.pathname)
     const saved = scrollPositions.get(location.key)
     if (navigationType === 'POP' && saved !== undefined) {
       // 一覧が描き終わるのを少し待ってから戻す
@@ -41,16 +45,13 @@ function ScrollManager() {
   return null
 }
 
-export function App() {
+function Shop() {
   return (
     <div className="app">
-      <ScrollManager />
       <header className="site-header">
         <Link to="/" className="site-title">{SHOP_NAME}</Link>
       </header>
-      {DATA_MODE !== 'hosting' && (
-        <p className="dev-note">お試し表示です（にせの商品データ）。</p>
-      )}
+      {DATA_MODE !== 'hosting' && <p className="dev-note">お試し表示です（にせの商品データ）。</p>}
       <main>
         <Routes>
           <Route path="/" element={<ProductListPage />} />
@@ -60,5 +61,24 @@ export function App() {
       </main>
       <footer className="site-footer">© {SHOP_NAME}</footer>
     </div>
+  )
+}
+
+export function App() {
+  return (
+    <>
+      <ScrollManager />
+      <Routes>
+        <Route
+          path="/admin/*"
+          element={
+            <Suspense fallback={<p className="status">読み込み中…</p>}>
+              <AdminApp />
+            </Suspense>
+          }
+        />
+        <Route path="*" element={<Shop />} />
+      </Routes>
+    </>
   )
 }

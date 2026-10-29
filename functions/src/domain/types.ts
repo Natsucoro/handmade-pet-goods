@@ -25,6 +25,9 @@ export interface ProductPhoto {
   /** 一覧用（長い辺 600px） */
   thumbUrl: string;
   caption: string;
+  /** 写真置き場の中の場所（消すときに使う）。お試しデータにはない */
+  storagePath?: string;
+  thumbStoragePath?: string;
 }
 
 export interface Choice {
@@ -95,4 +98,10 @@ export interface ShippingTable {
   /** mode が "by_prefecture" のときの送料（円） */
   fees?: Partial<Record<PrefectureCode, number>>;
   sample?: boolean;
+}
+
+/** ショップの設定（管理画面だけが読み書きする） */
+export interface ShopSettings {
+  /** 説明文の飾りに使う、自分で登録した色（#rrggbb） */
+  customColors: string[];
 }

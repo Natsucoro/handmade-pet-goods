@@ -59,6 +59,11 @@ export function createFirestoreShopData(db: Firestore): ShopData {
       categories.catch(() => (categories = null))
       return categories
     },
+    refresh() {
+      products = null
+      categories = null
+      tables.clear()
+    },
   }
 }
 
