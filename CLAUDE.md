@@ -61,8 +61,9 @@ npm run test:e2e       # スマホの大きさで画面を確かめる（SCREENS
   - にせの注文は練習用にだけ入れる（`scripts/seed.ts`）。本物には入れない
   - 本物で写真を上げるには Blaze が必要（承認前に公式料金ページの数字で相談する）
   - 本物で使う前に、Firebase で Google ログインを有効にし、お姉ちゃんの uid で admins の書類を作る
-- テスト注文（なつみの依頼）：商品ページで選ぶ → 購入手続き → テストのお支払い（お金は動かない）→ ありがとう画面 → 注文の状況（`/orders/:id?t=合言葉`）→ 管理画面で制作中・発送済み → お客さんが「受け取りました」。練習用とお試し表示でだけ動く（`CHECKOUT_ENABLED`。本物はステップ3で Stripe と Blaze のあと）
+- テスト注文（なつみの依頼）：商品ページで選ぶ → カートに入れる → カート（`/cart`）→ 購入手続き（`/checkout`）→ テストのお支払い（お金は動かない）→ ありがとう画面 → 注文の状況（`/orders/:id?t=合言葉`）→ 管理画面で制作中・発送済み → お客さんが「受け取りました」。練習用とお試し表示でだけ動く（`CHECKOUT_ENABLED`。本物はステップ3で Stripe と Blaze のあと）
   - 注文を作る・支払う・状況を見る・受け取りはサーバー（`functions/src/orders.ts`）。`testPay` は練習用でだけ動く。決まりは `functions/src/domain/checkout.ts`（お試し表示も同じものを使う）
+  - カートはこの端末の localStorage（`web/src/lib/cart.ts`）。送料は同じ送料表なら1回分、違う送料表は足す（`cartShipping`）。在庫は同じ商品の行を合わせて比べる。お届けの目安は一番長い商品に合わせる
   - メールはまだ送らない。文面は `domain/mails.ts` で作り、注文の `mails` に残して管理画面の「送るメール」で見られる。個人情報を消すときは `mails` も消すこと
   - e2e は1つずつ番号順（1-shop → 2-order → 3-admin）。練習用のデータを共有しているため
 - お試し表示（Firebase なし）：`npm --prefix web run build:sample`。末尾 `#admin` で管理画面から開く

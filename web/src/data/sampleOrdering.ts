@@ -10,11 +10,11 @@ const statusUrl = (o: Order) => `${location.origin}/orders/${o.id}?t=${o.viewTok
 
 export async function samplePlaceOrder(input: CheckoutInput): Promise<PlacedOrder> {
   const st = getSampleState()
-  const product = st.products.find((p) => p.id === input.productId)
-  const table = product && st.shippingTables.find((t) => t.id === product.shippingTableId)
-  if (!product || !table) throw new CheckoutError({ product: '商品が見つかりません' })
+  // お客さんに見えるのは公開中の商品だけ（サーバーと同じ）
+  const products = Object.fromEntries(st.products.map((p) => [p.id, p]))
+  const tables = Object.fromEntries(st.shippingTables.map((t) => [t.id, t]))
   const now = Date.now()
-  const { errors, result } = checkCheckout(input, product, table, st.publicSettings, now)
+  const { errors, result } = checkCheckout(input, products, tables, st.publicSettings, now)
   if (!result) throw new CheckoutError(errors)
   const day = orderNumber(now, 0).slice(0, 8)
   const seq = st.orders.filter((o) => o.number.startsWith(day)).length + 1
@@ -33,15 +33,15 @@ export async function sampleTestPay(orderId: string, t: string): Promise<Order['
   const order = find(orderId, t)
   if (!order) throw new Error('注文が見つかりません')
   if (order.status !== 'pending_payment') return order.status
-  const product = st.products.find((p) => p.id === order.items[0].productId) ?? null
-  const r = settlePayment(order, product)
+  const products = Object.fromEntries(order.items.map((i) => [i.productId, st.products.find((p) => p.id === i.productId) ?? null]))
+  const r = settlePayment(order, products)
   const now = Date.now()
   const next: Order = { ...order, status: r.status, ...(r.status === 'cancelled' ? { cancelledAtMs: now } : {}) }
   next.mails = [...(order.mails ?? []), ...mailsFor(next, r.status === 'paid' ? 'paid' : 'cancelled_sold_out', st.publicSettings.shopName, statusUrl(order), now)]
   setSampleState({
     ...st,
     orders: st.orders.map((o) => (o.id === orderId ? next : o)),
-    products: st.products.map((p) => (p.id === product?.id && r.newStock !== null ? { ...p, stock: r.newStock } : p)),
+    products: st.products.map((p) => (p.id in r.newStock ? { ...p, stock: r.newStock[p.id] } : p)),
   })
   return r.status
 }

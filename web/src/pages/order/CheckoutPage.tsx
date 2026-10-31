@@ -1,17 +1,17 @@
-import type { CheckoutErrors } from '@domain/checkout.ts'
-import { PricingError, quote } from '@domain/pricing.ts'
+import { cartShipping, type CheckoutErrors } from '@domain/checkout.ts'
+import { PricingError } from '@domain/pricing.ts'
 import { PREFECTURES, isPrefectureCode } from '@domain/prefectures.ts'
-import type { Product, ShippingTable } from '@domain/types.ts'
 import { useState, type ReactNode } from 'react'
-import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { CHECKOUT_ENABLED } from '../../config.ts'
 import { FormSkeleton } from '../../components/Loading.tsx'
 import { CheckoutError } from '../../data/ShopData.ts'
 import { useShopData } from '../../data/ShopDataContext.tsx'
+import { clearCart, useCart } from '../../lib/cart.ts'
 import { yen } from '../../lib/format.ts'
 import { rememberOrder } from '../../lib/myOrders.ts'
 import { useLoad } from '../../lib/useLoad.ts'
-import { loadDraft, saveDraft, type OrderDraft } from '../../lib/orderDraft.ts'
+import { useCartDetails } from './useCartDetails.ts'
 
 interface Form {
   name: string
@@ -26,32 +26,24 @@ interface Form {
 const EMPTY: Form = { name: '', postalCode: '', prefecture: '', address1: '', address2: '', phone: '', email: '', note: '' }
 
 export function CheckoutPage() {
-  const { id = '' } = useParams()
-  const location = useLocation()
   const data = useShopData()
-  const draft = (location.state as OrderDraft | null) ?? loadDraft(id)
-  const loaded = useLoad(async () => {
-    const product = await data.getProduct(id)
-    const [table, settings] = await Promise.all([product ? data.getShippingTable(product.shippingTableId) : null, data.getPublicSettings()])
-    return { product, table, settings }
-  }, [data, id])
+  const lines = useCart()
+  const details = useCartDetails(lines)
+  const settings = useLoad(() => data.getPublicSettings(), [data])
+  // 注文を送ったあとはカートが空になるので、ここでは戻さない
+  const [placing, setPlacing] = useState(false)
 
-  if (!CHECKOUT_ENABLED || !draft) return <Navigate to={`/products/${encodeURIComponent(id)}`} replace />
-  if (loaded.state === 'loading') return <FormSkeleton />
-  if (loaded.state === 'error') return <p className="status">読み込めませんでした。時間をおいて開き直してください。</p>
-  const { product, table, settings } = loaded.value
-  if (!product || !table) {
-    return (
-      <div className="status">
-        <p>この商品はいまご注文いただけません。</p>
-        <Link to="/" className="primary-small">商品一覧へ</Link>
-      </div>
-    )
-  }
-  return <CheckoutForm product={product} table={table} draft={draft} phoneRequired={settings.phoneRequired} />
+  if (!CHECKOUT_ENABLED) return <Navigate to="/" replace />
+  if (lines.length === 0 && !placing) return <Navigate to="/cart" replace />
+  if (details.state === 'loading' || settings.state === 'loading') return <FormSkeleton />
+  if (details.state === 'error' || settings.state === 'error') return <p className="status">読み込めませんでした。時間をおいて開き直してください。</p>
+  if (!details.ok && !placing) return <Navigate to="/cart" replace />
+  return <CheckoutForm details={details} phoneRequired={settings.value.phoneRequired} onPlacing={setPlacing} />
 }
 
-function CheckoutForm({ product, table, draft, phoneRequired }: { product: Product; table: ShippingTable; draft: OrderDraft; phoneRequired: boolean }) {
+type Details = Extract<ReturnType<typeof useCartDetails>, { state: 'done' }>
+
+function CheckoutForm({ details, phoneRequired, onPlacing }: { details: Details; phoneRequired: boolean; onPlacing: (b: boolean) => void }) {
   const data = useShopData()
   const navigate = useNavigate()
   const [form, setForm] = useState<Form>(EMPTY)
@@ -64,25 +56,25 @@ function CheckoutForm({ product, table, draft, phoneRequired }: { product: Produ
     if (k in errors) setErrors({ ...errors, [k]: undefined })
   }
 
-  const choiceAnswers = Object.fromEntries(product.questions.filter((q) => q.kind === 'choice' && draft.answers[q.id]).map((q) => [q.id, draft.answers[q.id]]))
-  let q: ReturnType<typeof quote> | null = null
+  const items = details.rows.map((r) => r.item!).filter(Boolean)
+  let shipping: number | null = null
   let quoteError = ''
   if (isPrefectureCode(form.prefecture)) {
     try {
-      q = quote(product, table, choiceAnswers, form.prefecture, draft.quantity)
+      shipping = cartShipping(items.map((i) => details.tables[details.products[i.productId].shippingTableId]), form.prefecture)
     } catch (e) {
       quoteError = e instanceof PricingError ? e.message : '送料を計算できませんでした'
     }
   }
+  const total = shipping === null ? null : details.subtotal + shipping
 
   const submit = async () => {
     setBusy(true)
     setFailed('')
     try {
+      onPlacing(true)
       const placed = await data.placeOrder({
-        productId: product.id,
-        answers: draft.answers,
-        quantity: draft.quantity,
+        items: details.rows.map((r) => ({ productId: r.line.productId, answers: r.line.answers, quantity: r.line.quantity })),
         address: {
           name: form.name,
           postalCode: form.postalCode,
@@ -95,28 +87,19 @@ function CheckoutForm({ product, table, draft, phoneRequired }: { product: Produ
         note: form.note,
       })
       rememberOrder({ ...placed, createdAtMs: Date.now() })
-      saveDraft(product.id, null)
+      clearCart()
       navigate(`/pay/${encodeURIComponent(placed.orderId)}?t=${encodeURIComponent(placed.token)}`, { replace: true })
     } catch (e) {
+      onPlacing(false)
       if (e instanceof CheckoutError) {
         setErrors(e.errors)
         setTimeout(() => document.querySelector('.has-oerror')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 0)
       } else {
         setFailed('送れませんでした。電波のよいところで、もう一度お試しください。')
       }
-    } finally {
       setBusy(false)
     }
   }
-
-  const answered = product.questions
-    .map((qq) => {
-      const v = draft.answers[qq.id]
-      if (!v) return null
-      const label = qq.kind === 'choice' ? qq.choices?.find((c) => c.id === v)?.label : v
-      return label ? { q: qq.label, a: label } : null
-    })
-    .filter((x): x is { q: string; a: string } => !!x)
 
   return (
     <form
@@ -128,9 +111,9 @@ function CheckoutForm({ product, table, draft, phoneRequired }: { product: Produ
       }}
     >
       <div className="back-bar">
-        <button type="button" className="back-button" onClick={() => navigate(-1)}>
-          <span aria-hidden="true">‹</span> 商品にもどる
-        </button>
+        <Link to="/cart" className="back-button">
+          <span aria-hidden="true">‹</span> カートにもどる
+        </Link>
       </div>
       <h1 className="page-title">購入手続き</h1>
       <ol className="flow-steps" aria-label="手続きの進み具合">
@@ -140,25 +123,27 @@ function CheckoutForm({ product, table, draft, phoneRequired }: { product: Produ
       </ol>
 
       <section className="panel">
-        <h2>ご注文の内容</h2>
-        <p className="co-item">
-          <strong>{product.name}</strong> × {draft.quantity}
-        </p>
-        {answered.length > 0 && (
-          <dl className="co-answers">
-            {answered.map((x) => (
-              <div key={x.q}>
-                <dt>{x.q}</dt>
-                <dd>{x.a}</dd>
-              </div>
-            ))}
-          </dl>
-        )}
-        {errors.answers && <p className="oerror has-oerror">{errors.answers}</p>}
-        {errors.quantity && <p className="oerror has-oerror">{errors.quantity}</p>}
-        {errors.product && <p className="oerror has-oerror">{errors.product}</p>}
+        <h2>ご注文の内容（{items.reduce((n, i) => n + i.quantity, 0)}点）</h2>
+        {items.map((it, i) => (
+          <div key={i} className="co-block">
+            <p className="co-item">
+              <strong>{it.name}</strong> × {it.quantity}
+              <span className="co-line-price">{yen(it.unitPrice * it.quantity)}</span>
+            </p>
+            {it.answers.length > 0 && (
+              <dl className="co-answers">
+                {it.answers.map((x) => (
+                  <div key={x.questionId}>
+                    <dt>{x.label}</dt>
+                    <dd>{x.answer}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+          </div>
+        ))}
+        {errors.items && <p className="oerror has-oerror">{errors.items}</p>}
       </section>
-
       <section className="panel">
         <h2>お届け先</h2>
         <OField label="お名前" error={errors.name}>
@@ -199,16 +184,17 @@ function CheckoutForm({ product, table, draft, phoneRequired }: { product: Produ
       <section className="panel">
         <h2>お支払い金額</h2>
         <dl className="totals">
-          <div><dt>商品代</dt><dd>{q ? yen(q.subtotal) : '—'}</dd></div>
-          <div><dt>送料</dt><dd>{q ? yen(q.shipping) : '都道府県を選ぶと出ます'}</dd></div>
-          <div className="grand"><dt>合計</dt><dd>{q ? yen(q.total) : '—'}</dd></div>
+          <div><dt>商品代</dt><dd>{yen(details.subtotal)}</dd></div>
+          <div><dt>送料</dt><dd>{shipping !== null ? yen(shipping) : '都道府県を選ぶと出ます'}</dd></div>
+          <div className="grand"><dt>合計</dt><dd>{total !== null ? yen(total) : '—'}</dd></div>
         </dl>
+        <p className="ofield-hint">同じ配送方法の商品は、送料1回分にまとめています。</p>
       </section>
 
       {failed && <p className="oerror" role="alert">{failed}</p>}
       <div className="buy-bar">
         <button type="submit" className={busy ? 'buy-button is-busy' : 'buy-button'} disabled={busy}>
-          {busy ? '送っています…' : q ? `お支払いへ（${yen(q.total)}）` : 'お支払いへ'}
+          {busy ? '送っています…' : total !== null ? `お支払いへ（${yen(total)}）` : 'お支払いへ'}
         </button>
       </div>
     </form>

@@ -2,6 +2,8 @@ import { lazy, Suspense, useEffect, useRef } from 'react'
 import { Link, Route, Routes, useLocation, useNavigationType } from 'react-router-dom'
 import { CHECKOUT_ENABLED, DATA_MODE } from './config.ts'
 import { CheckoutPage } from './pages/order/CheckoutPage.tsx'
+import { CartPage } from './pages/order/CartPage.tsx'
+import { CartButton } from './components/CartButton.tsx'
 import { PayPage } from './pages/order/PayPage.tsx'
 import { MyOrdersPage, OrderStatusPage } from './pages/order/OrderStatusPage.tsx'
 import { useShopName } from './lib/useShopName.ts'
@@ -59,6 +61,7 @@ function Shop() {
         <Link to="/" className="site-title" aria-label={shopName || 'トップへ'}>
           {shopName ? <span className="shop-name">{shopName}</span> : <span className="sk sk-title" aria-hidden="true" />}
         </Link>
+        {CHECKOUT_ENABLED && <CartButton />}
       </header>
       {DATA_MODE !== 'hosting' && <p className="dev-note">お試し表示です（にせの商品データ）。</p>}
       <main>
@@ -67,7 +70,8 @@ function Shop() {
           <Routes>
             <Route path="/" element={<ProductListPage />} />
             <Route path="/products/:id" element={<ProductPage />} />
-            <Route path="/checkout/:id" element={<CheckoutPage />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/pay/:id" element={<PayPage />} />
             <Route path="/orders" element={<MyOrdersPage />} />
             <Route path="/orders/:id" element={<OrderStatusPage />} />

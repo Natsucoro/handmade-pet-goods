@@ -37,9 +37,7 @@ describe('注文の流れ（サーバー）', () => {
   const getOrderStatus = httpsCallable(functions, 'getOrderStatus')
   const confirmReceived = httpsCallable(functions, 'confirmReceived')
   const input = {
-    productId: 'sample-pouch',
-    answers: {},
-    quantity: 1,
+    items: [{ productId: 'sample-pouch', answers: {}, quantity: 1 }],
     address: { name: 'にせ 太郎', postalCode: '1234567', prefecture: '13', address1: 'にせ区1-1' },
     email: 'taro@example.com',
   }
@@ -66,6 +64,24 @@ describe('注文の流れ（サーバー）', () => {
     await confirmReceived({ orderId: created.orderId, token: created.token })
     status = (await getOrderStatus({ orderId: created.orderId, token: created.token })).data as { status: string; total: number }
     expect(status.status).toBe('completed')
+  })
+
+  it('まとめ買い：同じ配送方法は送料1回分、違う配送方法は足す。在庫は商品ごとに減る', async () => {
+    const before = (await db().doc('products/sample-tsubosu').get()).data()!.stock as number
+    const created = (await createOrder({
+      ...input,
+      items: [
+        { productId: 'sample-hammock', answers: { color: 'mint' }, quantity: 1 },
+        { productId: 'sample-pouch', answers: {}, quantity: 1 },
+        { productId: 'sample-tsubosu', answers: { size: 'm' }, quantity: 2 },
+      ],
+    })).data as { orderId: string; token: string }
+    const status = (await getOrderStatus({ orderId: created.orderId, token: created.token })).data as { subtotal: number; shipping: number; items: unknown[] }
+    // 2,400＋2,800＋3,000×2、送料は 全国一律200円（ハンモックとポーチで1回）＋ 60サイズ東京 870円
+    expect(status).toMatchObject({ subtotal: 11200, shipping: 1070 })
+    expect(status.items).toHaveLength(3)
+    await testPay({ orderId: created.orderId, token: created.token })
+    expect((await db().doc('products/sample-tsubosu').get()).data()!.stock).toBe(before - 2)
   })
 
   it('合言葉が違うと、注文は見られない', async () => {

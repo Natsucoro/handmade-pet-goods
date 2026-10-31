@@ -1,21 +1,24 @@
-import { maxQuantity } from '@domain/checkout.ts'
+import { MAX_QUANTITY, maxQuantity } from '@domain/checkout.ts'
 import { unitPrice } from '@domain/pricing.ts'
 import type { Product } from '@domain/types.ts'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { extraYen, yen } from '../../lib/format.ts'
 
-import { loadDraft, saveDraft, type OrderDraft } from '../../lib/orderDraft.ts'
+import { addToCart, cartCount, useCart } from '../../lib/cart.ts'
 
-/** 商品ページの「ご注文」：選ぶ内容と個数。決まったら購入手続きへ */
+/** 商品ページの「ご注文」：選ぶ内容と個数を決めて、カートに入れる */
 export function OrderSection({ product }: { product: Product }) {
-  const navigate = useNavigate()
-  const [initial] = useState(() => loadDraft(product.id))
-  const [answers, setAnswers] = useState<Record<string, string>>(initial?.answers ?? {})
-  const [quantity, setQuantity] = useState(() => Math.max(1, Math.min(initial?.quantity ?? 1, maxQuantity(product) ?? 20, 20)))
+  const cart = useCart()
+  const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [quantity, setQuantity] = useState(1)
   const [error, setError] = useState('')
+  const [added, setAdded] = useState(false)
   const max = maxQuantity(product)
-  const limit = Math.min(max ?? 20, 20)
+  // 在庫のある商品は、カートにもう入っている分を引いた数まで
+  const inCart = cart.filter((l) => l.productId === product.id).reduce((n, l) => n + l.quantity, 0)
+  const left = max === null ? MAX_QUANTITY : Math.max(0, max - inCart)
+  const limit = Math.min(left, MAX_QUANTITY)
   const choiceAnswers = Object.fromEntries(product.questions.filter((q) => q.kind === 'choice' && answers[q.id]).map((q) => [q.id, answers[q.id]]))
   let price: number | null = null
   try {
@@ -24,16 +27,25 @@ export function OrderSection({ product }: { product: Product }) {
     price = null
   }
 
-  const go = () => {
+  const add = () => {
     const missing = product.questions.find((q) => q.required && !(answers[q.id] ?? '').trim())
     if (missing) {
-      setError(`「${missing.label}」を選んでください`)
+      setError(`「${missing.label}」を${missing.kind === 'choice' ? '選んで' : '入れて'}ください`)
       document.getElementById('order')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       return
     }
+    if (limit < 1) {
+      setError('在庫の分は、もうすべてカートに入っています')
+      return
+    }
+    const r = addToCart(product.id, answers, Math.min(quantity, limit))
+    if (r === 'full') {
+      setError('カートがいっぱいです（20種類まで）。先にご注文をお済ませください')
+      return
+    }
     setError('')
-    saveDraft(product.id, { answers, quantity })
-    navigate(`/checkout/${encodeURIComponent(product.id)}`, { state: { answers, quantity } satisfies OrderDraft })
+    setAdded(true)
+    setQuantity(1)
   }
 
   return (
@@ -82,7 +94,7 @@ export function OrderSection({ product }: { product: Product }) {
             <output aria-live="polite" aria-label="個数">{quantity}</output>
             <button type="button" aria-label="1つ増やす" disabled={quantity >= limit} onClick={() => setQuantity(quantity + 1)}>＋</button>
           </div>
-          {max !== null && <span className="ofield-hint">残り{max}個</span>}
+          {max !== null && <span className="ofield-hint">残り{max}個{inCart > 0 ? `（カートに${inCart}個）` : ''}</span>}
         </div>
         {price !== null && (
           <p className="order-subtotal">
@@ -93,10 +105,26 @@ export function OrderSection({ product }: { product: Product }) {
         {error && <p className="oerror" role="alert">{error}</p>}
       </section>
       <div className="buy-bar">
-        <button type="button" className="buy-button" onClick={go}>
-          購入手続きへ
+        <button type="button" className="buy-button" onClick={add}>
+          カートに入れる
         </button>
       </div>
+      {added && (
+        <div className="sheet-backdrop" onClick={() => setAdded(false)}>
+          <div className="sheet" role="dialog" aria-modal="true" aria-label="カートに入れました" onClick={(e) => e.stopPropagation()}>
+            <p className="sheet-title"><span className="sheet-check" aria-hidden="true">✓</span>カートに入れました</p>
+            <p className="ofield-hint">カートの中：{cartCount(cart)}点</p>
+            <div className="sheet-actions">
+              <button type="button" className="secondary-button" onClick={() => setAdded(false)}>
+                買い物を続ける
+              </button>
+              <Link to="/cart" className="buy-button sheet-go">
+                カートを見る
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

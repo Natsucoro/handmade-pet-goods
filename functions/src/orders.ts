@@ -6,7 +6,7 @@ import "./setup.js";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { getFirestore, type Transaction } from "firebase-admin/firestore";
 import { HttpsError, onCall, type CallableRequest } from "firebase-functions/v2/https";
-import { checkCheckout, orderNumber, settlePayment, type CheckoutInput } from "./domain/checkout.js";
+import { MAX_LINES, checkCheckout, orderNumber, settlePayment, type CheckoutInput } from "./domain/checkout.js";
 import { mailsFor, type MailEvent } from "./domain/mails.js";
 import { DEFAULT_PUBLIC_SETTINGS, type Order, type Product, type PublicSettings, type ShippingTable } from "./domain/types.js";
 
@@ -43,16 +43,20 @@ const statusUrl = (origin: string, o: Pick<Order, "id" | "viewToken">) => `${ori
 
 export const createOrder = onCall(async (req) => {
   const input = (req.data ?? {}) as CheckoutInput;
-  if (typeof input.productId !== "string") throw new HttpsError("invalid-argument", "商品が見つかりません");
+  if (!Array.isArray(input.items) || input.items.length > MAX_LINES) throw new HttpsError("invalid-argument", "カートの中身が正しくありません");
   const db = getFirestore();
-  const pSnap = await db.collection("products").doc(input.productId).get();
-  if (!pSnap.exists) throw new HttpsError("not-found", "商品が見つかりません");
-  const product = { ...(pSnap.data() as Omit<Product, "id">), id: pSnap.id, categoryIds: [], sortOrder: 0 } as Product;
-  const tSnap = await db.collection("shippingTables").doc(product.shippingTableId).get();
-  if (!tSnap.exists) throw new HttpsError("failed-precondition", "送料表が見つかりません");
-  const table = { ...(tSnap.data() as Omit<ShippingTable, "id">), id: tSnap.id };
+  const ids = [...new Set(input.items.map((i) => i?.productId).filter((x): x is string => typeof x === "string" && x.length > 0))];
+  const products: Record<string, Product> = {};
+  for (const snap of ids.length ? await db.getAll(...ids.map((id) => db.collection("products").doc(id))) : []) {
+    if (snap.exists) products[snap.id] = { ...(snap.data() as Omit<Product, "id">), id: snap.id } as Product;
+  }
+  const tableIds = [...new Set(Object.values(products).map((p) => p.shippingTableId).filter(Boolean))];
+  const tables: Record<string, ShippingTable> = {};
+  for (const snap of tableIds.length ? await db.getAll(...tableIds.map((id) => db.collection("shippingTables").doc(id))) : []) {
+    if (snap.exists) tables[snap.id] = { ...(snap.data() as Omit<ShippingTable, "id">), id: snap.id };
+  }
   const now = Date.now();
-  const { errors, result } = checkCheckout(input, product, table, await publicSettings(), now);
+  const { errors, result } = checkCheckout(input, products, tables, await publicSettings(), now);
   if (!result) throw new HttpsError("invalid-argument", "入力を確かめてください", { errors });
 
   const viewToken = randomBytes(18).toString("base64url");
@@ -80,15 +84,16 @@ export async function markPaid(orderId: string, origin: string): Promise<Order["
     if (!oSnap.exists) throw new HttpsError("not-found", "注文が見つかりません");
     const order = { ...(oSnap.data() as Omit<Order, "id">), id: oSnap.id } as Order;
     if (order.status !== "pending_payment") return order.status; // 2回目の通知は何もしない
-    const pRef = db.collection("products").doc(order.items[0].productId);
-    const pSnap = await tx.get(pRef);
-    const product = pSnap.exists ? ({ ...(pSnap.data() as Omit<Product, "id">), id: pSnap.id } as Product) : null;
-    const r = settlePayment(order, product);
+    const ids = [...new Set(order.items.map((i) => i.productId))];
+    const snaps = await tx.getAll(...ids.map((id) => db.collection("products").doc(id)));
+    const products: Record<string, Product | null> = {};
+    for (const snap of snaps) products[snap.id] = snap.exists ? ({ ...(snap.data() as Omit<Product, "id">), id: snap.id } as Product) : null;
+    const r = settlePayment(order, products);
     const now = Date.now();
     const event: MailEvent = r.status === "paid" ? "paid" : "cancelled_sold_out";
     const next = { ...order, status: r.status, ...(r.status === "cancelled" ? { cancelledAtMs: now } : {}) };
     const mails = [...(order.mails ?? []), ...mailsFor(next, event, shop.shopName, statusUrl(origin, order), now)];
-    if (r.newStock !== null) tx.update(pRef, { stock: r.newStock });
+    for (const [id, stock] of Object.entries(r.newStock)) tx.update(db.collection("products").doc(id), { stock });
     tx.update(oRef, { status: r.status, mails, ...(r.status === "cancelled" ? { cancelledAtMs: now } : {}) });
     return r.status;
   });
