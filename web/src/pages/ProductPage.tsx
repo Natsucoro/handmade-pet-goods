@@ -1,7 +1,8 @@
 import type { Category, Product, ShippingTable } from '@domain/types.ts'
 import { useEffect } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { assetUrl } from '../config.ts'
+import { CHECKOUT_ENABLED, assetUrl } from '../config.ts'
+import { OrderSection } from './order/OrderSection.tsx'
 import { AvailabilityBadge } from '../components/AvailabilityBadge.tsx'
 import { PhotoCarousel } from '../components/PhotoCarousel.tsx'
 import { RichText } from '../components/RichText.tsx'
@@ -80,6 +81,7 @@ function ProductDetail({ product, table, categories }: { product: Product; table
     trackViewItem(product)
   }, [product])
   const availability = availabilityOf(product)
+  const orderable = CHECKOUT_ENABLED && availability.kind !== 'sold_out'
   const choiceQuestions = product.questions.filter((q) => q.kind === 'choice' && q.choices?.length)
 
   return (
@@ -113,7 +115,9 @@ function ProductDetail({ product, table, categories }: { product: Product; table
         </p>
       </section>
 
-      {choiceQuestions.length > 0 && (
+      {orderable && <OrderSection product={product} />}
+
+      {!orderable && choiceQuestions.length > 0 && (
         <section className="panel">
           <h2>選べる内容と値段</h2>
           <dl className="choices">
@@ -159,11 +163,13 @@ function ProductDetail({ product, table, categories }: { product: Product; table
         </button>
       </div>
 
-      <div className="buy-bar">
-        <button type="button" className="buy-button" disabled>
-          {availability.kind === 'sold_out' ? '売り切れ' : 'ご購入はもうすぐできるようになります'}
-        </button>
-      </div>
+      {!orderable && (
+        <div className="buy-bar">
+          <button type="button" className="buy-button" disabled>
+            {availability.kind === 'sold_out' ? '売り切れ' : 'ご購入はもうすぐできるようになります'}
+          </button>
+        </div>
+      )}
     </article>
   )
 }

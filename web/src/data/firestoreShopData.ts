@@ -1,11 +1,13 @@
 import { DEFAULT_PUBLIC_SETTINGS, type Category, type Product, type PublicSettings, type ShippingTable } from '@domain/types.ts'
 import type { Firestore } from 'firebase/firestore/lite'
 import { collection, doc, getDoc, getDocs, limit, orderBy, query, where } from 'firebase/firestore/lite'
-import type { ShopData } from './ShopData.ts'
+import type { Functions } from 'firebase/functions'
+import { httpsCallable } from 'firebase/functions'
+import { CheckoutError, type OrderStatusView, type PlacedOrder, type ShopData } from './ShopData.ts'
 
 // 開きっぱなしで見張り続ける読み方はしない（読み取り回数を増やさないため）。
 // 一覧・カテゴリ・送料表は、ページを開いている間は1回読んだものを使い回す。
-export function createFirestoreShopData(db: Firestore): ShopData {
+export function createFirestoreShopData(db: Firestore, functions?: Functions): ShopData {
   let products: Promise<Product[]> | null = null
   let categories: Promise<Category[]> | null = null
   let publicSettings: Promise<PublicSettings> | null = null
@@ -66,6 +68,35 @@ export function createFirestoreShopData(db: Firestore): ShopData {
         () => DEFAULT_PUBLIC_SETTINGS,
       )
       return publicSettings
+    },
+    async placeOrder(input) {
+      if (!functions) throw new Error('注文はまだ受け付けていません')
+      try {
+        return (await httpsCallable(functions, 'createOrder')(input)).data as PlacedOrder
+      } catch (e) {
+        const details = (e as { details?: { errors?: CheckoutError['errors'] } }).details
+        if (details?.errors) throw new CheckoutError(details.errors)
+        throw e
+      }
+    },
+    async testPay(orderId, token) {
+      if (!functions) throw new Error('注文はまだ受け付けていません')
+      const r = await httpsCallable(functions, 'testPay')({ orderId, token })
+      products = null
+      return (r.data as { status: 'paid' | 'cancelled' }).status
+    },
+    async getOrderStatus(orderId, token) {
+      if (!functions) return null
+      try {
+        return (await httpsCallable(functions, 'getOrderStatus')({ orderId, token })).data as OrderStatusView
+      } catch (e) {
+        if ((e as { code?: string }).code === 'functions/not-found') return null
+        throw e
+      }
+    },
+    async confirmReceived(orderId, token) {
+      if (!functions) throw new Error('注文はまだ受け付けていません')
+      await httpsCallable(functions, 'confirmReceived')({ orderId, token })
     },
     refresh() {
       publicSettings = null

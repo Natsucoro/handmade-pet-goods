@@ -18,3 +18,6 @@ export function assetUrl(path: string): string {
   if (/^(https?:|data:|blob:|\/)/.test(path)) return path
   return import.meta.env.BASE_URL + path
 }
+
+/** 注文を受け付けるか。本物は Stripe と Blaze の準備ができてから（ステップ3）。いまは練習用とお試し表示だけ */
+export const CHECKOUT_ENABLED = DATA_MODE !== 'hosting'

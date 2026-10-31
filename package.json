@@ -10,7 +10,7 @@
     "typecheck": "npm --prefix web run typecheck && npm --prefix web run lint -- --deny-warnings && npm --prefix functions run build",
     "test": "npm run typecheck && npm --prefix web test && npm --prefix functions test && npm run test:emulator",
     "test:emulator": "npm --prefix functions run build && firebase emulators:exec --project demo-handmade-pet-goods --only firestore,storage,auth,functions \"vitest run --config tests/vitest.config.ts\"",
-    "test:e2e": "npm --prefix web run build:emulator && firebase emulators:exec --project demo-handmade-pet-goods --only firestore,auth,storage,hosting \"npm run seed && playwright test\""
+    "test:e2e": "npm --prefix web run build:emulator && npm --prefix functions run build && firebase emulators:exec --project demo-handmade-pet-goods --only firestore,auth,storage,functions,hosting \"npm run seed && playwright test\""
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.2",

@@ -1,31 +1,11 @@
 // 管理画面を、練習用 Firebase の上で実際に動かす（本物の Firebase では動かさない）
 import { expect, test, type Page } from '@playwright/test'
-import { makePng } from './fixtures.ts'
+import { becomeAdmin, makePng } from './fixtures.ts'
 
 const shots = process.env.SCREENSHOT_DIR
 const PROJECT = 'demo-handmade-pet-goods'
 
 test.skip(!!process.env.BASE_URL, '管理画面のテストは練習用でだけ動かす')
-
-async function becomeAdmin(page: Page) {
-  await page.goto('/admin')
-  await expect(page.getByRole('button', { name: 'Google でログイン' })).toBeVisible()
-  if (shots) await page.screenshot({ path: `${shots}/a0-login.png` })
-  await page.evaluate(() => (window as unknown as { __testSignIn: (e: string) => Promise<unknown> }).__testSignIn('ane@example.com'))
-  const ordersHeading = page.getByRole('heading', { name: '注文', exact: true })
-  await expect(page.locator('code').or(ordersHeading)).toBeVisible()
-  if (await ordersHeading.isVisible()) return // もう管理者になっている
-  const uid = (await page.locator('code').textContent())!.trim()
-  // 練習用のデータベースに、管理者の書類を直接作る（本物ではアプリから作れない）
-  const res = await fetch(`http://127.0.0.1:8080/v1/projects/${PROJECT}/databases/(default)/documents/admins?documentId=${uid}`, {
-    method: 'POST',
-    headers: { Authorization: 'Bearer owner', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ fields: { note: { stringValue: 'テスト' } } }),
-  })
-  expect(res.ok).toBe(true)
-  await page.reload()
-  await expect(page.getByRole('heading', { name: '注文', exact: true })).toBeVisible()
-}
 
 const menu = (page: Page) => page.getByRole('navigation', { name: '管理画面のメニュー' })
 

@@ -171,5 +171,18 @@ export interface Order {
   shippedAtMs?: number;
   completedAtMs?: number;
   cancelledAtMs?: number;
+  /** お客さんが注文の状況を見るための合言葉（推測できない長い文字） */
+  viewToken?: string;
+  /** お届けまでの目安（注文したときの日数） */
+  leadDays?: number;
+  /** 送るメール（ステップ3で本当に送る。いまは中身の確認用に残す） */
+  mails?: OrderMail[];
   sample?: boolean;
+}
+
+export interface OrderMail {
+  to: "customer" | "shop";
+  subject: string;
+  body: string;
+  atMs: number;
 }

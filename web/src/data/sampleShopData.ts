@@ -1,5 +1,6 @@
 import { DATA_MODE } from '../config.ts'
 import type { ShopData } from './ShopData.ts'
+import { sampleConfirmReceived, sampleGetOrderStatus, samplePlaceOrder, sampleTestPay } from './sampleOrdering.ts'
 import { getSampleState } from './sampleStore.ts'
 
 /** Firebase を使わず、お試しデータを返す（管理画面のお試しで変えた内容も反映される） */
@@ -27,5 +28,18 @@ export function createSampleShopData(): ShopData {
       return getSampleState().publicSettings
     },
     refresh() {},
+    async placeOrder(input) {
+      await wait()
+      return samplePlaceOrder(input)
+    },
+    async testPay(orderId, token) {
+      await wait()
+      return sampleTestPay(orderId, token)
+    },
+    async getOrderStatus(orderId, token) {
+      await wait()
+      return sampleGetOrderStatus(orderId, token)
+    },
+    confirmReceived: sampleConfirmReceived,
   }
 }

@@ -1,5 +1,6 @@
 import { PREFECTURES } from '@domain/prefectures.ts'
-import type { Carrier, Order } from '@domain/types.ts'
+import { mailsFor, type MailEvent } from '@domain/mails.ts'
+import type { Carrier, Order, OrderMail } from '@domain/types.ts'
 import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { DATA_MODE } from '../../config.ts'
@@ -7,6 +8,7 @@ import { yen } from '../../lib/format.ts'
 import { CARRIER_LABEL, ORDER_TABS, STATUS_LABEL, formatDate, nextStatus, shipmentError, statusPatch, type OrderTabId } from '../../lib/orders.ts'
 import { ScrollRow } from '../../components/ScrollRow.tsx'
 import { useAdmin } from '../AdminContext.tsx'
+import { useShopName } from '../../lib/useShopName.ts'
 import { ConfirmButton, Field } from '../ui.tsx'
 import { FormSkeleton, ListSkeleton } from '../../components/Loading.tsx'
 
@@ -91,6 +93,7 @@ export function OrderDetailPage() {
   const [tracking, setTracking] = useState('')
   const [shipError, setShipError] = useState('')
   const [busy, setBusy] = useState(false)
+  const shopName = useShopName()
 
   useEffect(() => {
     data.getOrder(id).then((o) => {
@@ -103,7 +106,12 @@ export function OrderDetailPage() {
   if (order === undefined) return <FormSkeleton />
   if (order === null) return <p className="status">この注文は見つかりませんでした。<Link to="/admin">注文一覧へ</Link></p>
 
-  const update = async (patch: Partial<Order>, message: string) => {
+  const update = async (patch: Partial<Order>, message: string, mail?: MailEvent) => {
+    if (mail) {
+      // お客さんへのお知らせメール（ステップ3で本当に送る。いまは「送るメール」に残す）
+      const url = `${location.origin}/orders/${order.id}?t=${order.viewToken ?? ''}`
+      patch = { ...patch, mails: [...(order.mails ?? []), ...mailsFor({ ...order, ...patch }, mail, shopName, url, Date.now())] }
+    }
     setBusy(true)
     try {
       await data.updateOrder(order.id, patch)
@@ -223,12 +231,13 @@ export function OrderDetailPage() {
               update(
                 statusPatch(order, 'shipped', Date.now(), { carrier, trackingNumber: tracking }),
                 order.status === 'shipped' ? '発送の連絡を直しました' : '発送済みにしました',
+                order.status === 'shipped' ? undefined : 'shipped',
               )
             }}
           >
             {order.status === 'shipped' ? '配送会社・追跡番号を直す' : '発送済みにする'}
           </button>
-          <p className="afield-hint">お客さんへの「発送しました」メールは、ステップ3で自動で送られるようになります。</p>
+          <p className="afield-hint">発送済みにすると、お客さんへの「発送しました」メールができます（いまはテストなので送られず、下の「送るメール」に残ります）。</p>
         </div>
       )}
 
@@ -244,9 +253,18 @@ export function OrderDetailPage() {
       {order.status === 'shipped' && (
         <div className="aform-section">
           <h2>受け取り</h2>
-          <p className="afield-hint">お客さんが「受け取りました」を押すか、発送から14日たつと自動で完了になります（ステップ3・4で作ります）。</p>
+          <p className="afield-hint">お客さんが注文の状況ページで「受け取りました」を押すと、完了になります（発送から14日たつと自動で完了にするのは、ステップ4で作ります）。</p>
         </div>
       )}
+
+      {order.status === 'pending_payment' && (
+        <div className="aform-section">
+          <h2>お支払い待ち</h2>
+          <p className="afield-hint">お客さんがまだお支払いを終えていない注文です。お支払いが終わると「入金済み」になります。することはありません。</p>
+        </div>
+      )}
+
+      <MailList mails={order.mails ?? []} />
 
       {(order.status === 'paid' || order.status === 'in_production') && (
         <div className="aform-section">
@@ -256,11 +274,40 @@ export function OrderDetailPage() {
             label="キャンセルにする"
             confirmLabel="キャンセルにする"
             message={`注文 ${order.number} をキャンセルにします。元に戻せません。`}
-            onConfirm={() => update(statusPatch(order, 'cancelled', Date.now()), 'キャンセルにしました')}
+            onConfirm={() => update(statusPatch(order, 'cancelled', Date.now()), 'キャンセルにしました', 'cancelled')}
           />
         </div>
       )}
     </section>
+  )
+}
+
+const MAIL_TO: Record<OrderMail['to'], string> = { customer: 'お客さんへ', shop: 'お店（お姉ちゃん）へ' }
+
+/** この注文で送るメール。いまはテストなので送らず、ここで中身を見られるようにしておく */
+function MailList({ mails }: { mails: OrderMail[] }) {
+  const [open, setOpen] = useState<number | null>(null)
+  return (
+    <div className="aform-section">
+      <h2>送るメール（{mails.length}）</h2>
+      <p className="afield-hint">いまはテストなので、メールは本当には送られません。お店を始めると、ここにあるメールが自動で届きます。</p>
+      {mails.length === 0 ? (
+        <p className="afield-hint">まだありません。</p>
+      ) : (
+        <ul className="mail-list">
+          {mails.map((m, i) => (
+            <li key={i}>
+              <button type="button" className="mail-head" aria-expanded={open === i} onClick={() => setOpen(open === i ? null : i)}>
+                <span className={`mail-to to-${m.to}`}>{MAIL_TO[m.to]}</span>
+                <span className="mail-subject">{m.subject}</span>
+                <span className="order-date">{formatDate(m.atMs)}</span>
+              </button>
+              {open === i && <pre className="mail-body">{m.body}</pre>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }
 

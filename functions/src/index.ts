@@ -1,16 +1,11 @@
 // サーバー側のプログラム（Cloud Functions）。
 // 本物に上げるには Blaze（従量制）が必要なので、ステップ1では練習用（エミュレーター）でだけ動かす。
-import { initializeApp } from "firebase-admin/app";
+import "./setup.js";
 import { getFirestore } from "firebase-admin/firestore";
-import { setGlobalOptions } from "firebase-functions/v2";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { isPrefectureCode } from "./domain/prefectures.js";
 import { PricingError, quote } from "./domain/pricing.js";
 import type { Product, ShippingTable } from "./domain/types.js";
-
-initializeApp();
-// 東京。待機させっぱなしにしない（minInstances は 0 のまま）。
-setGlobalOptions({ region: "asia-northeast1", maxInstances: 2 });
 
 /** 商品・選択肢・お届け先から合計金額を計算し直す（画面の数字は信じない）。 */
 export const quoteOrder = onCall(async (request) => {
@@ -38,3 +33,5 @@ export const quoteOrder = onCall(async (request) => {
     throw e;
   }
 });
+
+export { confirmReceived, createOrder, getOrderStatus, testPay } from "./orders.js";

@@ -1,6 +1,9 @@
 import { lazy, Suspense, useEffect, useRef } from 'react'
 import { Link, Route, Routes, useLocation, useNavigationType } from 'react-router-dom'
-import { DATA_MODE } from './config.ts'
+import { CHECKOUT_ENABLED, DATA_MODE } from './config.ts'
+import { CheckoutPage } from './pages/order/CheckoutPage.tsx'
+import { PayPage } from './pages/order/PayPage.tsx'
+import { MyOrdersPage, OrderStatusPage } from './pages/order/OrderStatusPage.tsx'
 import { useShopName } from './lib/useShopName.ts'
 import { trackPageView } from './lib/analytics.ts'
 import { NotFoundPage } from './pages/NotFoundPage.tsx'
@@ -64,11 +67,22 @@ function Shop() {
           <Routes>
             <Route path="/" element={<ProductListPage />} />
             <Route path="/products/:id" element={<ProductPage />} />
+            <Route path="/checkout/:id" element={<CheckoutPage />} />
+            <Route path="/pay/:id" element={<PayPage />} />
+            <Route path="/orders" element={<MyOrdersPage />} />
+            <Route path="/orders/:id" element={<OrderStatusPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </div>
       </main>
-      <footer className="site-footer">© {shopName}</footer>
+      <footer className="site-footer">
+        {CHECKOUT_ENABLED && (
+          <p>
+            <Link to="/orders">ご注文の状況</Link>
+          </p>
+        )}
+        © {shopName}
+      </footer>
     </div>
   )
 }

@@ -30,3 +30,51 @@ describe('金額の計算し直し（サーバー）', () => {
     await expect(quoteOrder({ productId: 'sample-draft', answers: {}, prefecture: '13' })).rejects.toThrow()
   })
 })
+
+describe('注文の流れ（サーバー）', () => {
+  const createOrder = httpsCallable(functions, 'createOrder')
+  const testPay = httpsCallable(functions, 'testPay')
+  const getOrderStatus = httpsCallable(functions, 'getOrderStatus')
+  const confirmReceived = httpsCallable(functions, 'confirmReceived')
+  const input = {
+    productId: 'sample-pouch',
+    answers: {},
+    quantity: 1,
+    address: { name: 'にせ 太郎', postalCode: '1234567', prefecture: '13', address1: 'にせ区1-1' },
+    email: 'taro@example.com',
+  }
+  const db = () => adminDb(initAdmin({ projectId }, `flow-${Math.random()}`))
+
+  it('注文 → テスト決済 → 在庫が減る → 状況を見る → 発送 → 受け取り', async () => {
+    const before = (await db().doc('products/sample-pouch').get()).data()!.stock as number
+    const created = (await createOrder(input)).data as { orderId: string; number: string; token: string }
+    expect(created.number).toMatch(/^\d{8}-\d{3}$/)
+    // 画面の金額は使わず、サーバーで計算し直している（2,800円＋全国一律200円）
+    let status = (await getOrderStatus({ orderId: created.orderId, token: created.token })).data as { status: string; total: number }
+    expect(status).toMatchObject({ status: 'pending_payment', total: 3000 })
+
+    expect((await testPay({ orderId: created.orderId, token: created.token })).data).toEqual({ status: 'paid' })
+    expect((await db().doc('products/sample-pouch').get()).data()!.stock).toBe(before - 1)
+    const saved = (await db().doc(`orders/${created.orderId}`).get()).data()!
+    expect(saved.mails.map((m: { to: string }) => m.to)).toEqual(['customer', 'shop'])
+    // 2回目の支払い通知では、在庫を二重に減らさない
+    await testPay({ orderId: created.orderId, token: created.token })
+    expect((await db().doc('products/sample-pouch').get()).data()!.stock).toBe(before - 1)
+
+    await expect(confirmReceived({ orderId: created.orderId, token: created.token })).rejects.toThrow('発送済み')
+    await db().doc(`orders/${created.orderId}`).update({ status: 'shipped', carrier: 'yamato', trackingNumber: '1' })
+    await confirmReceived({ orderId: created.orderId, token: created.token })
+    status = (await getOrderStatus({ orderId: created.orderId, token: created.token })).data as { status: string; total: number }
+    expect(status.status).toBe('completed')
+  })
+
+  it('合言葉が違うと、注文は見られない', async () => {
+    const created = (await createOrder(input)).data as { orderId: string }
+    await expect(getOrderStatus({ orderId: created.orderId, token: 'wrong' })).rejects.toThrow('見つかりません')
+    await expect(testPay({ orderId: created.orderId, token: 'wrong' })).rejects.toThrow('見つかりません')
+  })
+
+  it('入力がおかしいと、注文を作らない（どこがおかしいかを返す）', async () => {
+    await expect(createOrder({ ...input, email: 'x', address: { ...input.address, name: '' } })).rejects.toThrow('入力を確かめて')
+  })
+})

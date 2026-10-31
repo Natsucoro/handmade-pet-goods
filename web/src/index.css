@@ -284,3 +284,86 @@ main { flex: 1; padding: 12px 16px 24px; }
 .related .scroll-row { margin: 0 -16px; padding: 0 16px; gap: 10px; }
 .related .scroll-wrap::before, .related .scroll-wrap::after { top: 0; bottom: 40px; }
 .related .scroll-btn { top: 34%; }
+
+/* ===== ご注文〜お支払い〜注文の状況 ===== */
+.checkout { padding-bottom: 88px; }
+.page-title { font-size: 1.15rem; margin: 4px 0 8px; }
+.flow-steps { list-style: none; margin: 0 0 4px; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; counter-reset: step; }
+.flow-steps li {
+  counter-increment: step; text-align: center; font-size: 0.78rem; padding: 6px 2px; border-radius: 8px;
+  background: var(--gray-soft); color: var(--muted); font-weight: 600;
+}
+.flow-steps li::before { content: counter(step) '. '; }
+.flow-steps li.on { background: var(--accent); color: #fff; }
+.flow-steps li.done { background: var(--accent-soft); color: var(--accent); }
+.ofield { display: block; margin-top: 12px; }
+.ofield:first-of-type { margin-top: 0; }
+.ofield-label { display: block; font-size: 0.88rem; font-weight: 700; margin-bottom: 4px; }
+.ofield-hint { display: block; font-size: 0.78rem; color: var(--muted); }
+.optional { margin-left: 6px; font-size: 0.7rem; color: var(--muted); background: var(--gray-soft); border-radius: 4px; padding: 1px 6px; vertical-align: 2px; }
+.ofield input, .ofield select, .ofield textarea, .otext {
+  display: block; width: 100%; min-height: 46px; padding: 8px 12px; font: inherit; font-size: 16px;
+  border: 1.5px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--text);
+}
+.ofield textarea { min-height: 84px; resize: vertical; }
+.ofield input:focus, .ofield select:focus, .ofield textarea:focus, .otext:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+.has-oerror input, .has-oerror select, .has-oerror textarea { border-color: #d0453f; background: #fff8f7; }
+.oerror { display: block; margin: 4px 0 0; color: #c0392b; font-size: 0.85rem; font-weight: 600; }
+.choice-list { display: flex; flex-direction: column; gap: 6px; }
+.choice {
+  display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 6px 12px;
+  border: 1.5px solid var(--line-strong); border-radius: 10px; background: var(--surface);
+  transition: background 0.15s, border-color 0.15s;
+}
+.choice input { width: 20px; height: 20px; accent-color: var(--accent); margin: 0; flex: none; }
+.choice span:first-of-type { flex: 1; }
+.choice.on { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+.qty-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.qty-row .ofield-label { margin: 0; }
+.stepper { display: inline-flex; align-items: center; border: 1.5px solid var(--line-strong); border-radius: 999px; overflow: hidden; background: var(--surface); }
+.stepper button { width: 46px; height: 44px; border: 0; background: none; font-size: 1.2rem; color: var(--accent); font-weight: 700; }
+.stepper button:disabled { color: var(--line); }
+.stepper output { min-width: 2.2em; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.order-subtotal { margin: 12px 0 0 !important; font-size: 0.95rem; }
+.order-subtotal strong { font-size: 1.15rem; margin-left: 4px; }
+.co-item { margin: 0 0 4px !important; }
+.co-answers { margin: 0 0 6px; display: flex; flex-direction: column; gap: 2px; font-size: 0.88rem; }
+.co-answers > div { display: flex; gap: 8px; }
+.co-answers dt { flex: none; width: 7.5em; color: var(--muted); }
+.co-answers dd { margin: 0; }
+.co-block + .co-block { border-top: 1px dashed var(--line); padding-top: 6px; }
+.checkout .totals { margin: 6px 0 0; display: flex; flex-direction: column; gap: 2px; }
+.checkout .totals > div { display: flex; justify-content: space-between; }
+.checkout .totals dd { margin: 0; font-variant-numeric: tabular-nums; }
+.checkout .totals .grand { font-weight: 700; font-size: 1.1rem; border-top: 2px solid var(--line-strong); padding-top: 6px; margin-top: 4px; }
+.test-pay { border-color: var(--warn); background: var(--warn-soft); }
+.test-pay h2 { background: #f6e2bd; border-color: var(--warn); color: #8a5a12; }
+.thanks {
+  text-align: center; padding: 20px 16px 8px; margin-bottom: 4px;
+  animation: pop-in 0.5s var(--ease-out, ease-out) backwards;
+}
+.thanks h1 { font-size: 1.2rem; margin: 8px 0 4px; color: var(--accent); }
+.thanks p { margin: 0; }
+.thanks-mark {
+  display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%;
+  background: var(--accent); color: #fff; font-size: 2rem; font-weight: 700;
+  animation: pop-in 0.6s 0.15s var(--ease-out, ease-out) backwards;
+}
+@keyframes pop-in { from { opacity: 0; transform: scale(0.6); } }
+.order-msg { font-weight: 600; }
+.track-steps { list-style: none; margin: 8px 0 4px; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.track-steps li { text-align: center; font-size: 0.75rem; padding: 6px 2px; border-radius: 8px; background: var(--gray-soft); color: var(--muted); }
+.track-steps li.done { background: var(--accent); color: #fff; font-weight: 700; }
+.ship-info { margin-top: 8px !important; font-size: 0.9rem; }
+.checkout .confirm-box { border: 1.5px solid var(--accent); border-radius: 12px; padding: 12px; background: var(--accent-soft); }
+.checkout .confirm-box p { margin: 0 0 8px; }
+.checkout .confirm-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.my-orders { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.my-orders a {
+  display: flex; align-items: center; gap: 8px; padding: 12px 14px; min-height: 52px; text-decoration: none;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; font-weight: 600;
+}
+.my-orders a span:first-child { flex: 1; }
+.site-footer p { margin: 0 0 4px; }
+/* 下に固定のボタンがあるページでは、いちばん下のリンクがボタンに隠れないようにする */
+.app:has(.buy-bar) .site-footer { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
