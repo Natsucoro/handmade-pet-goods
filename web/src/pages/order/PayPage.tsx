@@ -58,6 +58,7 @@ export function PayPage() {
         {order.items.map((it, i) => (
           <p key={i} className="co-item">
             <strong>{it.name}</strong> × {it.quantity}
+            <span className="co-line-price">{yen(it.unitPrice * it.quantity)}</span>
           </p>
         ))}
         <dl className="totals">

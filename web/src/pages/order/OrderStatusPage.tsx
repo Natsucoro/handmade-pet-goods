@@ -144,6 +144,7 @@ export function OrderStatusPage() {
           <div key={i} className="co-block">
             <p className="co-item">
               <strong>{it.name}</strong> × {it.quantity}
+              <span className="co-line-price">{yen(it.unitPrice * it.quantity)}</span>
             </p>
             {it.answers.length > 0 && (
               <dl className="co-answers">

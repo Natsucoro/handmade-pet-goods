@@ -34,8 +34,10 @@ test('商品一覧からつぼ巣のページを開き、送料を確かめる',
     .toBe(1)
   if (shots) await page.screenshot({ path: `${shots}/3-product-photo2.png` })
 
-  await page.getByRole('combobox', { name: 'お届け先の都道府県' }).selectOption('01')
-  await expect(page.locator('.shipping-result')).toHaveText('送料 1,200円')
+  // 都道府県を選ばなくても、地域ごとの送料を開いて見られる（送料はご注文のときに決まる）
+  await expect(page.getByRole('combobox', { name: 'お届け先の都道府県' })).toHaveCount(0)
+  await page.getByText('地域ごとの送料を見る').click()
+  await expect(page.locator('.fee-table')).toContainText('北海道1,200円')
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
   if (shots) await page.screenshot({ path: `${shots}/4-product-full.png`, fullPage: true })
 })

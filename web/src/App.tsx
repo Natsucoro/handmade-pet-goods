@@ -4,6 +4,7 @@ import { CHECKOUT_ENABLED, DATA_MODE } from './config.ts'
 import { CheckoutPage } from './pages/order/CheckoutPage.tsx'
 import { CartPage } from './pages/order/CartPage.tsx'
 import { CartButton } from './components/CartButton.tsx'
+import { SampleSwitch } from './components/SampleSwitch.tsx'
 import { PayPage } from './pages/order/PayPage.tsx'
 import { MyOrdersPage, OrderStatusPage } from './pages/order/OrderStatusPage.tsx'
 import { useShopName } from './lib/useShopName.ts'
@@ -63,7 +64,12 @@ function Shop() {
         </Link>
         {CHECKOUT_ENABLED && <CartButton />}
       </header>
-      {DATA_MODE !== 'hosting' && <p className="dev-note">お試し表示です（にせの商品データ）。</p>}
+      {DATA_MODE !== 'hosting' && (
+        <div className="dev-note">
+          <span>お試し表示です（にせの商品データ）。</span>
+          {DATA_MODE === 'sample' && <SampleSwitch />}
+        </div>
+      )}
       <main>
         {/* ページが変わるたびに、ふわっと下から出す */}
         <div key={pathname} className="page-enter">

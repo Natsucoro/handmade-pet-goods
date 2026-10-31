@@ -102,8 +102,9 @@ test('管理画面：カテゴリ・送料表・写真つき商品を登録す�
   const img = page.getByRole('img', { name: '正面から' })
   await expect.poll(() => img.evaluate((i: HTMLImageElement) => i.naturalWidth)).toBe(1600)
   expect(await img.getAttribute('src')).toMatch(/\.webp/)
-  await page.getByRole('combobox', { name: 'お届け先の都道府県' }).selectOption('13')
-  await expect(page.locator('.shipping-result')).toHaveText('送料 800円')
+  // 関東の中で東京だけ違うので、関東は県ごとに出る
+  await page.getByText('地域ごとの送料を見る').click()
+  await expect(page.locator('.fee-table')).toContainText('東京都800円')
   if (shots) await page.screenshot({ path: `${shots}/a6-shop-new-product.png`, fullPage: true })
   // 写真を外して保存すると、写真置き場からも消える
   const listFiles = async () => {

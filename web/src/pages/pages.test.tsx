@@ -128,14 +128,15 @@ describe('商品ページ', () => {
     expect(screen.getByText('+500円')).toBeInTheDocument()
     expect(screen.getByText('ひとつずつ手で編んだ、ふっくらつぼ巣です')).toBeInTheDocument()
     expect(screen.getByText('ご注文から約4日でお届けします。')).toBeInTheDocument()
-    expect(screen.getByText('870円〜1,500円（お届け先で変わります）')).toBeInTheDocument()
+    expect(document.querySelector('.shipping-line')).toHaveTextContent('870円〜1,500円（お届け先で変わります）')
   })
 
-  it('都道府県を選ぶと送料が出る', async () => {
+  it('都道府県を選ばなくても、地域ごとの送料を見られる', async () => {
     renderAt('/products/sample-tsubosu')
-    const select = await screen.findByRole('combobox', { name: 'お届け先の都道府県' })
-    await userEvent.selectOptions(select, '01')
-    expect(document.querySelector('.shipping-result')).toHaveTextContent('送料 1,200円')
+    await screen.findByText('地域ごとの送料を見る')
+    expect(screen.queryByRole('combobox', { name: 'お届け先の都道府県' })).toBeNull()
+    expect(document.querySelector('.fee-table')).toHaveTextContent('北海道1,200円')
+    expect(document.querySelector('.fee-table')).toHaveTextContent('沖縄1,500円')
   })
 
   it('全国一律の送料', async () => {

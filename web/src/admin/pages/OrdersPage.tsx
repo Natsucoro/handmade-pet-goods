@@ -12,6 +12,9 @@ import { useShopName } from '../../lib/useShopName.ts'
 import { ConfirmButton, Field } from '../ui.tsx'
 import { FormSkeleton, ListSkeleton } from '../../components/Loading.tsx'
 
+// 進み具合の帯は、スマホの幅で1行に収まる短い名前にする
+const STEP_LABEL = { paid: '入金済み', in_production: '制作中', shipped: '発送済み', completed: '完了' } as const
+
 const prefName = (code: string) => PREFECTURES.find((p) => p.code === code)?.name ?? ''
 
 function StatusBadge({ order }: { order: Order }) {
@@ -144,7 +147,7 @@ export function OrderDetailPage() {
             const done = order.status !== 'cancelled' && order4.indexOf(order.status) >= order4.indexOf(s)
             return (
               <li key={s} className={done ? 'done' : ''}>
-                {STATUS_LABEL[s]}
+                {STEP_LABEL[s]}
               </li>
             )
           })}
