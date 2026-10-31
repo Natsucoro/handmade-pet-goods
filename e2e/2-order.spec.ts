@@ -47,6 +47,10 @@ test('注文 → テストのお支払い → 管理画面で発送 → お客�
   await expect(page.locator('.cart-item')).toHaveCount(2)
   await expect(page.locator('.totals .grand')).toContainText('9,800円')
   if (shots) await page.screenshot({ path: `${shots}/o1c-cart.png`, fullPage: true })
+  // 「購入手続きへ」は、下のメニューのすぐ上にある（重ならない）
+  const bar = await page.locator('.buy-bar').boundingBox()
+  const nav = await page.locator('.bottom-nav').boundingBox()
+  expect(bar!.y + bar!.height).toBeLessThanOrEqual(nav!.y + 1)
   await page.getByRole('button', { name: '購入手続きへ' }).click()
 
   // お届け先
@@ -57,6 +61,8 @@ test('注文 → テストのお支払い → 管理画面で発送 → お客�
   await expect(page.getByText('お名前を入れてください')).toBeVisible()
   await expect(page.getByText('メールアドレスを正しく入れてください')).toBeVisible()
   await page.getByLabel('お名前').fill('テスト 花子')
+  // 文字を打っている間は、下のメニューを隠す
+  await expect(page.locator('.bottom-nav')).toBeHidden()
   await expect(page.getByText('お名前を入れてください')).toHaveCount(0)
   await page.getByLabel('郵便番号').fill('１２３４５６７')
   await page.getByLabel('都道府県').selectOption('13')
@@ -91,7 +97,7 @@ test('注文 → テストのお支払い → 管理画面で発送 → お客�
   await expect(page.locator('.qty-row')).toContainText('残り1個')
 
   // この端末の注文一覧から開ける
-  await page.getByRole('link', { name: 'ご注文の状況' }).click()
+  await page.getByRole('navigation', { name: 'メニュー' }).getByRole('link', { name: 'ご注文' }).click()
   await expect(page.getByRole('link', { name: new RegExp(number) })).toBeVisible()
 
   // 管理画面：注文を開いて、制作中 → 発送済み

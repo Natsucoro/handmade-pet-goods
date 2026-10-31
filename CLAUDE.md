@@ -65,5 +65,6 @@ npm run test:e2e       # スマホの大きさで画面を確かめる（SCREENS
   - 注文を作る・支払う・状況を見る・受け取りはサーバー（`functions/src/orders.ts`）。`testPay` は練習用でだけ動く。決まりは `functions/src/domain/checkout.ts`（お試し表示も同じものを使う）
   - カートはこの端末の localStorage（`web/src/lib/cart.ts`）。送料は同じ送料表なら1回分、違う送料表は足す（`cartShipping`）。在庫は同じ商品の行を合わせて比べる。お届けの目安は一番長い商品に合わせる
   - メールはまだ送らない。文面は `domain/mails.ts` で作り、注文の `mails` に残して管理画面の「送るメール」で見られる。個人情報を消すときは `mails` も消すこと
+  - 画面の下に固定のメニュー（ホーム・さがす `/search`・カート・ご注文）。下に固定のボタンはメニューのすぐ上に重ねる。文字を打っている間はメニューを隠す（`components/BottomNav.tsx`）。カート・ご注文は `CHECKOUT_ENABLED` のときだけ
   - e2e は1つずつ番号順（1-shop → 2-order → 3-admin）。練習用のデータを共有しているため
 - お試し表示（Firebase なし）：`npm --prefix web run build:sample`。末尾 `#admin` で管理画面から開く

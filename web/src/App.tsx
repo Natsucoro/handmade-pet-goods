@@ -1,9 +1,10 @@
 import { lazy, Suspense, useEffect, useRef } from 'react'
 import { Link, Route, Routes, useLocation, useNavigationType } from 'react-router-dom'
-import { CHECKOUT_ENABLED, DATA_MODE } from './config.ts'
+import { DATA_MODE } from './config.ts'
 import { CheckoutPage } from './pages/order/CheckoutPage.tsx'
 import { CartPage } from './pages/order/CartPage.tsx'
-import { CartButton } from './components/CartButton.tsx'
+import { BottomNav } from './components/BottomNav.tsx'
+import { SearchPage } from './pages/SearchPage.tsx'
 import { SampleSwitch } from './components/SampleSwitch.tsx'
 import { PayPage } from './pages/order/PayPage.tsx'
 import { MyOrdersPage, OrderStatusPage } from './pages/order/OrderStatusPage.tsx'
@@ -62,7 +63,6 @@ function Shop() {
         <Link to="/" className="site-title" aria-label={shopName || 'トップへ'}>
           {shopName ? <span className="shop-name">{shopName}</span> : <span className="sk sk-title" aria-hidden="true" />}
         </Link>
-        {CHECKOUT_ENABLED && <CartButton />}
       </header>
       {DATA_MODE !== 'hosting' && (
         <div className="dev-note">
@@ -76,6 +76,7 @@ function Shop() {
           <Routes>
             <Route path="/" element={<ProductListPage />} />
             <Route path="/products/:id" element={<ProductPage />} />
+            <Route path="/search" element={<SearchPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/pay/:id" element={<PayPage />} />
@@ -85,14 +86,8 @@ function Shop() {
           </Routes>
         </div>
       </main>
-      <footer className="site-footer">
-        {CHECKOUT_ENABLED && (
-          <p>
-            <Link to="/orders">ご注文の状況</Link>
-          </p>
-        )}
-        © {shopName}
-      </footer>
+      <footer className="site-footer">© {shopName}</footer>
+      <BottomNav />
     </div>
   )
 }

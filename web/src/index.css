@@ -437,3 +437,40 @@ a.buy-button { display: flex; }
 .fee-table dd { margin: 0; font-variant-numeric: tabular-nums; }
 .checkout .co-block:last-of-type { padding-bottom: 6px; }
 .checkout .co-block + .totals, .checkout .co-item + .totals { border-top: 1.5px solid var(--line); padding-top: 6px; }
+
+/* ===== 画面の下のメニュー（なつみの決定 2026年10月31日） ===== */
+:root { --nav-h: 60px; }
+.bottom-nav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  display: flex; justify-content: center;
+  padding-bottom: env(safe-area-inset-bottom); background: #fff; border-top: 2px solid var(--line);
+}
+.bnav-item {
+  flex: 1; max-width: 180px; height: calc(var(--nav-h) - 2px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  color: var(--muted); text-decoration: none; font-size: 0.7rem; font-weight: 700; position: relative;
+}
+.bnav-item.on { color: var(--accent); }
+.bnav-item.on::before { content: ''; position: absolute; top: -2px; left: 22%; right: 22%; height: 3px; border-radius: 0 0 3px 3px; background: var(--accent); }
+.bnav-item:active { background: var(--accent-soft); }
+.bnav-icon { position: relative; display: inline-flex; }
+.bnav-icon .cart-badge { top: -6px; right: -12px; }
+/* メニューのぶん、下に空きを作る。下に固定のボタンは、メニューのすぐ上に重ねる */
+.app { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom)); }
+.buy-bar { bottom: calc(var(--nav-h) + env(safe-area-inset-bottom)); padding-bottom: 10px; z-index: 19; }
+/* 文字を打っている間はメニューを隠す */
+html.typing .bottom-nav { display: none; }
+html.typing .app { padding-bottom: 0; }
+html.typing .buy-bar { bottom: 0; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+/* 「カートに入れました」はメニューより上に出す */
+.sheet-backdrop { z-index: 40; }
+
+/* さがす */
+.search-page { padding-bottom: 12px; }
+.search-group { margin-top: 16px; }
+.search-group h2 { font-size: 0.85rem; color: var(--muted); margin: 0 0 6px; }
+.search-cats { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.search-cats li + li { border-top: 1px solid var(--line); }
+.search-cats a { display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 8px 16px; text-decoration: none; font-weight: 600; }
+.search-cats a:active { background: var(--accent-soft); }
+.search-all { display: block; margin-top: 16px; text-align: center; color: var(--accent); font-weight: 700; }
+.chevron { color: var(--muted); font-size: 1.3rem; line-height: 1; }
