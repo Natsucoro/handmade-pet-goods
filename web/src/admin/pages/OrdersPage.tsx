@@ -5,6 +5,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { DATA_MODE } from '../../config.ts'
 import { yen } from '../../lib/format.ts'
 import { CARRIER_LABEL, ORDER_TABS, STATUS_LABEL, formatDate, nextStatus, shipmentError, statusPatch, type OrderTabId } from '../../lib/orders.ts'
+import { ScrollRow } from '../../components/ScrollRow.tsx'
 import { useAdmin } from '../AdminContext.tsx'
 import { ConfirmButton, Field } from '../ui.tsx'
 import { FormSkeleton, ListSkeleton } from '../../components/Loading.tsx'
@@ -39,7 +40,7 @@ export function OrdersPage() {
         <h1>注文</h1>
       </div>
       {DATA_MODE === 'sample' && <p className="afield-hint">いま並んでいるのは、お試しのにせの注文です。</p>}
-      <div className="tab-row" role="tablist" aria-label="注文の分け方">
+      <ScrollRow className="tab-row" role="tablist" aria-label="注文の分け方" hintKey="order-tabs">
         {ORDER_TABS.map((t) => (
           <button
             key={t.id}
@@ -53,7 +54,7 @@ export function OrdersPage() {
             <span className="tab-count">{count(t.id)}</span>
           </button>
         ))}
-      </div>
+      </ScrollRow>
 
       {shown.length === 0 ? (
         <p className="status">{tab === 'todo' ? '対応が必要な注文はありません。' : '注文はありません。'}</p>

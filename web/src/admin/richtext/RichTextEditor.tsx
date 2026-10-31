@@ -1,5 +1,6 @@
 import type { RichBlock } from '@domain/types.ts'
 import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { ScrollRow } from '../../components/ScrollRow.tsx'
 import { PALETTE } from '../../lib/palette.ts'
 import { parseBlocks, readSelection, renderBlocks, writeSelection } from './dom.ts'
 import { applyStyle, isCollapsed, selectionHas, toggleBullet, toggleCenter, type Sel, type StyleChange } from './model.ts'
@@ -153,7 +154,7 @@ export function RichTextEditor({
               <button type="button" className="tb" onClick={() => style({ kind: 'size', size: 'small' })}>小</button>
             </div>
           )}
-          <div className="rte-buttons" onPointerDown={keep}>
+          <ScrollRow className="rte-buttons" onPointerDown={keep} hintKey="rte">
             <button type="button" className={boldOn ? 'tb on' : 'tb'} aria-pressed={boldOn} disabled={!hasRange} onClick={() => style({ kind: 'toggle', key: 'bold' })}>
               <b>太</b>
             </button>
@@ -172,7 +173,7 @@ export function RichTextEditor({
             <button type="button" className="tb" disabled={!sel} onClick={() => apply(toggleBullet)} aria-label="箇条書き">
               ・箇条
             </button>
-          </div>
+          </ScrollRow>
           {!hasRange && <p className="rte-hint">文字を選ぶと、太字・色・大きさ・マーカーが使えます</p>}
         </div>
       )}

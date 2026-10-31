@@ -20,6 +20,7 @@ import {
 import { yen } from '../lib/format.ts'
 import { useLoad } from '../lib/useLoad.ts'
 import { FadeImg } from '../components/FadeImg.tsx'
+import { ScrollRow } from '../components/ScrollRow.tsx'
 import { ProductGridSkeleton } from '../components/Loading.tsx'
 
 export function ProductListPage() {
@@ -85,8 +86,9 @@ function Catalog({
             </button>
           </div>
           {groups.map((g) => (
-            <div className="chip-row" key={g.group} role="group" aria-label={g.group || 'カテゴリ'}>
+            <div className="cat-row" key={g.group}>
               {g.group && <span className="chip-row-label">{g.group}</span>}
+              <ScrollRow className="chip-scroll" role="group" aria-label={g.group || 'カテゴリ'} hintKey={`cat-${g.group}`}>
               {g.items.map((c) => {
                 const active = filters.categoryId === c.id
                 return (
@@ -101,6 +103,7 @@ function Catalog({
                   </button>
                 )
               })}
+              </ScrollRow>
             </div>
           ))}
         </nav>

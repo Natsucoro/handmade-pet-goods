@@ -242,3 +242,9 @@
 .color-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .color-list li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .color-list .confirm-box { flex-basis: 100%; }
+
+/* 横スライドの列（注文の見出し・飾りボタン） */
+.admin .scroll-wrap { margin-bottom: 12px; }
+.admin .tab-row { margin: 0; padding: 0 36px 0 0; }
+.rte-toolbar .scroll-wrap { --fade-bg: var(--surface); margin: 0; }
+.rte-toolbar .scroll-row { gap: 4px; padding-right: 36px; }

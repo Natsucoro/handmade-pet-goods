@@ -12,6 +12,7 @@ import { extraYen, yen } from '../lib/format.ts'
 import { trackViewItem } from '../lib/analytics.ts'
 import { useLoad } from '../lib/useLoad.ts'
 import { FadeImg } from '../components/FadeImg.tsx'
+import { ScrollRow } from '../components/ScrollRow.tsx'
 import { ProductPageSkeleton } from '../components/Loading.tsx'
 
 export function ProductPage() {
@@ -182,7 +183,7 @@ function RelatedProducts({ product }: { product: Product }) {
   return (
     <section className="related" aria-labelledby="related-title">
       <h2 id="related-title">こちらもおすすめ</h2>
-      <ul className="related-list">
+      <ScrollRow as="ul" className="related-list" hintKey="related">
         {related.map((p) => (
           <li key={p.id}>
             <Link to={`/products/${p.id}`} state={{ listQuery }}>
@@ -192,7 +193,7 @@ function RelatedProducts({ product }: { product: Product }) {
             </Link>
           </li>
         ))}
-      </ul>
+      </ScrollRow>
     </section>
   )
 }

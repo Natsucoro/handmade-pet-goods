@@ -254,3 +254,33 @@ main { flex: 1; padding: 12px 16px 24px; }
 .chip, .tool-button, .sort-select select, .search input, .back-button, .secondary-button, .field select { border-width: 1.5px; border-color: var(--line-strong); }
 .filter-panel { border: 1.5px solid var(--line-strong); }
 .buy-bar { border-top: 2px solid var(--line); background: rgba(255, 255, 255, 0.97); }
+
+/* ===== 横にスライドできる列：続きがあることがわかるように ===== */
+.scroll-wrap { position: relative; min-width: 0; --fade-bg: var(--bg); }
+.scroll-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; scroll-behavior: smooth; overscroll-behavior-x: contain; }
+.scroll-row::-webkit-scrollbar { display: none; }
+.scroll-wrap::before, .scroll-wrap::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 44px; pointer-events: none; z-index: 1;
+  opacity: 0; transition: opacity 0.25s ease;
+}
+.scroll-wrap::before { left: 0; background: linear-gradient(to right, var(--fade-bg), transparent); }
+.scroll-wrap::after { right: 0; background: linear-gradient(to left, var(--fade-bg) 30%, transparent); }
+.scroll-wrap.can-left::before, .scroll-wrap.can-right::after { opacity: 1; }
+.scroll-btn {
+  position: absolute; top: 50%; z-index: 2; width: 32px; height: 32px; margin-top: -16px; border-radius: 50%;
+  border: 1.5px solid var(--line-strong); background: #fff; color: var(--accent); font-size: 1.3rem; line-height: 1;
+  display: flex; align-items: center; justify-content: center; padding: 0 0 2px;
+  box-shadow: 0 2px 8px rgba(61, 51, 48, 0.18); animation: fade-in 0.25s ease backwards;
+}
+.scroll-btn.right { right: 2px; animation: fade-in 0.25s ease backwards, nudge-right 1.6s ease-in-out 0.4s 2; }
+.scroll-btn.left { left: 2px; }
+@keyframes nudge-right { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
+
+/* カテゴリ：まとまりの名前は左に固定して、ボタンだけスライド */
+.cat-row { display: flex; align-items: center; gap: 6px; margin-right: -16px; }
+.cat-row .scroll-wrap { flex: 1; }
+.cat-row .scroll-row { padding-right: 40px; }
+.cat-row .scroll-btn.right { right: 10px; }
+.related .scroll-row { margin: 0 -16px; padding: 0 16px; gap: 10px; }
+.related .scroll-wrap::before, .related .scroll-wrap::after { top: 0; bottom: 40px; }
+.related .scroll-btn { top: 34%; }
